@@ -1,12 +1,27 @@
-﻿namespace StudentBazaar.web.Models
+﻿
+namespace StudentBazaar.Web.Models
 {
-    public class StudyYear
+    public class StudyYear : BaseEntity
     {
-        public int YearID { get; set; }
-        public int MajorID { get; set; }
-        public string YearName { get; set; } = string.Empty;
 
-        // Relationships
-        public Major Major { get; set; }
+        [Required]
+        [MaxLength(100)]
+        public string YearName { get; set; } = string.Empty; 
+
+        // ==========================
+        // 🔗 Relationships (Many StudyYears -> One Major)
+        // ==========================
+
+        [Required]
+        public int MajorId { get; set; }
+
+        [ForeignKey(nameof(MajorId))]
+        public Major Major { get; set; } = null!; // 
+
+        // ==========================
+        // 🔁 Reverse Relationships (One StudyYear -> Many Products)
+        // ==========================
+
+        public ICollection<Product> Products { get; set; } = new List<Product>(); 
     }
 }

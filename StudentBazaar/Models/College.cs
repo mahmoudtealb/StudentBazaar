@@ -1,30 +1,29 @@
-﻿namespace StudentBazaar.web.Models
+﻿namespace StudentBazaar.Web.Models
 {
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
+  
 
-    public class College
+    public class College : BaseEntity
     {
-        [Key]
-        public int CollegeID { get; set; }
 
         [Required]
         [MaxLength(150)]
-        public string CollegeName { get; set; }
+        public string CollegeName { get; set; } = string.Empty; 
 
         // ==========================
-        // 🔗 Relationships
+        // 🔗 Relationships (Many Colleges -> One University)
         // ==========================
 
-        // Relationship with University (Many Colleges -> One University)
         [Required]
-        public int UniversityID { get; set; }
+        public int UniversityId { get; set; }
 
-        [ForeignKey("UniversityID")]
-        public University University { get; set; }
+        [ForeignKey(nameof(UniversityId))]
+        public University University { get; set; } = null!; 
 
-        // Relationship with Users (One College -> Many Users)
-        public ICollection<User> Users { get; set; }
+        // ==========================
+        // 🔗 Reverse Relationships (One College -> Many Users/Majors)
+        // ==========================
+
+        public ICollection<User> Users { get; set; } = new List<User>(); 
+        public ICollection<Major> Majors { get; set; } = new List<Major>(); 
     }
 }

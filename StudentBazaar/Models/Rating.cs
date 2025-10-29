@@ -1,33 +1,23 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace StudentBazaar.web.Models;
-public class Rating
+﻿
+namespace StudentBazaar.Web.Models;
+public class Rating : BaseEntity
 {
-   
-    [Key]
-    public int RatingID { get; set; }
-
     // User who created the rating
     [Required]
-    [ForeignKey("User")]
-    public int UserID { get; set; }
-    public virtual User User { get; set; }
+    public int UserId { get; set; } // FK updated
+    public virtual User User { get; set; } = null!; 
 
     // Product being rated
     [Required]
-    [ForeignKey("Product")]
-    public int ProductID { get; set; }
-    public virtual Product Product { get; set; }
+    public int ProductId { get; set; } // FK updated
+    public virtual Product Product { get; set; } = null!; 
 
     // Rating stars (1–5)
+    [Required]
     [Range(1, 5)]
     public int Stars { get; set; }
 
     // Optional comment about the product
     [MaxLength(500)]
-    public string? Comment { get; set; }
-
-    // Rating creation date
-    public DateTime Date { get; set; } = DateTime.Now;
+    public string? Comment { get; set; } // ✅ Nullable allowed (optional field)
 }

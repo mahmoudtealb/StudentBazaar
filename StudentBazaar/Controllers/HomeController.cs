@@ -1,8 +1,5 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
-using StudentBazaar.Models;
-
-namespace StudentBazaar.Controllers
+﻿
+namespace StudentBazaar.Web.Controllers
 {
     public class HomeController : Controller
     {
@@ -26,7 +23,12 @@ namespace StudentBazaar.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // 💡 التعديل الرئيسي: بما أنك حذفت ErrorViewModel، نستخدم ViewData
+            // لتمرير RequestId إلى View بدلاً من نموذج (Model)
+            ViewData["RequestId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+
+            // ببساطة نرجع View() وسيعرض ملف Views/Shared/Error.cshtml
+            return View();
         }
     }
 }

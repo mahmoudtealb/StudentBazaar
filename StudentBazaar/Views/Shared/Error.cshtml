@@ -1,15 +1,20 @@
-﻿@model ErrorViewModel
-@{
+﻿@{
     ViewData["Title"] = "Error";
+
+    // 💡 التعديل: نستخرج RequestId من ViewData بدلاً من استخدام @model ErrorViewModel
+    var requestId = ViewData["RequestId"] as string;
+
+    // لتبسيط العرض، نعتبر أن RequestId صالح إذا لم يكن فارغًا
+    var showRequestId = !string.IsNullOrEmpty(requestId);
 }
 
 <h1 class="text-danger">Error.</h1>
 <h2 class="text-danger">An error occurred while processing your request.</h2>
 
-@if (Model.ShowRequestId)
+@if (showRequestId)
 {
     <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
+        <strong>Request ID:</strong> <code>@requestId</code>
     </p>
 }
 

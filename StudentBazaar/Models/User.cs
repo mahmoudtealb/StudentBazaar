@@ -1,60 +1,69 @@
-﻿namespace StudentBazaar.web.Models
+﻿namespace StudentBazaar.Web.Models
 {
-    using System;
-    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
 
-    public class User
+    public class User:BaseEntity
     {
-        [Key]
-        public int UserID { get; set; }
+
+        // Inherits Id, CreatedAt, UpdatedAt
 
         [Required]
         [MaxLength(100)]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty; // ADDED: Default value for non-nullable string
 
         [Required]
         [EmailAddress]
         [MaxLength(150)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty; // ADDED: Default value for non-nullable string
 
         [Required]
         [MinLength(8)]
         [MaxLength(100)]
-        public string Password { get; set; }
+        public string PasswordHash { get; set; } = string.Empty; // ADDED: Default value, MUST be Hashed
 
         [Required]
         [Phone]
         [MaxLength(20)]
-        public string Phone { get; set; }
+        public string Phone { get; set; } = string.Empty; // ADDED: Default value
 
         [Required]
-        [MaxLength(50)]
-        public string Role { get; set; }
+        public UserRole Role { get; set; } = UserRole.Student;
 
         [MaxLength(250)]
-        public string Address { get; set; }
-
-        [Required]
-        [DataType(DataType.Date)]
-        public DateTime JoinDate { get; set; }
+        public string Address { get; set; } = string.Empty;
 
         // ==========================
-        // 🔗 Relationships
+        // 🔗 Relationships (Many Users -> One University/College)
         // ==========================
 
-        // Relationship with University (Many Users -> One University)
         [Required]
-        public int UnivID { get; set; }
+        public int UniversityId { get; set; } // FK
 
-        [ForeignKey("UnivID")]
+        [ForeignKey("UniversityId")]
         public required University University { get; set; }
 
-        // Relationship with College (Many Users -> One College)
         [Required]
-        public int CollegeID { get; set; }
+        public int CollegeId { get; set; } // FK
 
-        [ForeignKey("CollegeID")]
-        public College College { get; set; }
+        [ForeignKey("CollegeId")]
+        public College College { get; set; } = null!; // ADDED: Null forgiveness operator for non-nullable reference
+
+        // ==========================
+        // 🔗 Reverse Relationships (One User -> Many Listings/Orders/Ratings/Cart Items)
+        // ==========================
+
+        // Listings posted by this user (Seller)
+        public ICollection<Listing> ListingsPosted { get; set; } = new List<Listing>();
+
+        // Orders placed by this user (Buyer)
+        public ICollection<Order> OrdersPlaced { get; set; } = new List<Order>();
+
+        // Ratings given by this user
+        public ICollection<Rating> RatingsGiven { get; set; } = new List<Rating>();
+
+        // Shipments handled by this user (Shipper)
+        public ICollection<Shipment> ShipmentsHandled { get; set; } = new List<Shipment>();
+
+        // ADDED: Shopping Cart Items belonging to this user
+        public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; } = new List<ShoppingCartItem>();
     }
 }

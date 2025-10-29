@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using StudentBazaar.web.Data;
+using StudentBazaar.Web.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 

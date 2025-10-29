@@ -1,16 +1,26 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace StudentBazaar.web.Models
+﻿
+namespace StudentBazaar.Web.Models
 {
-    public class Major
+    public class Major : BaseEntity
     {
-        public int MajorId { get; set; }
-        public int CollegeID { get; set; }
+        [Required]
+        [MaxLength(250)]
+        public string MajorName { get; set; } = string.Empty; 
+        // ==========================
+        // 🔗 Relationships (Many Majors -> One College)
+        // ==========================
 
-        [MaxLength(length:250)]
-        public string MajorName { get; set; } = string.Empty;
+        [Required]
+        public int CollegeId { get; set; }
 
-        public College College { get; set; }
-        public ICollection<StudyYear> StudyYears { get; set; }
+        [ForeignKey(nameof(CollegeId))]
+        public College College { get; set; } = null!; // 
+
+        // ==========================
+        // 🔁 Reverse Relationships (One Major -> Many StudyYears)
+        // ==========================
+
+        public ICollection<StudyYear> StudyYears { get; set; } = new List<StudyYear>(); 
+
     }
 }

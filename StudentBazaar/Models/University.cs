@@ -1,29 +1,22 @@
-﻿namespace StudentBazaar.web.Models
+﻿namespace StudentBazaar.Web.Models
 {
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
+    
 
-    public class University
+    public class University:BaseEntity
     {
-        [Key]
-        public int UniversityID { get; set; }
-
         [Required]
         [MaxLength(150)]
-        public string UniversityName { get; set; }
+        public string UniversityName { get; set; } = string.Empty; 
 
         [Required]
         [MaxLength(200)]
-        public string Location { get; set; }
+        public string Location { get; set; } = string.Empty; 
 
         // ==========================
-        // 🔗 Relationships
+        // 🔗 Relationships (One University -> Many Colleges/Users)
         // ==========================
 
-        // One University -> Many Colleges
-        public ICollection<College> Colleges { get; set; }
-
-        // One University -> Many Users
-        public ICollection<User> Users { get; set; }
+        public ICollection<College> Colleges { get; set; } = new List<College>(); 
+        public ICollection<User> Users { get; set; } = new List<User>(); 
     }
 }

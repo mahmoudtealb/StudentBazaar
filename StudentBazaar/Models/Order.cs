@@ -1,47 +1,44 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Reflection;
+﻿
 
-namespace StudentBazaar.web.Models;
+namespace StudentBazaar.Web.Models;
 
-public class Order
+public class Order : BaseEntity
 {
-    [Key]
-    public int OrderID { get; set; }
-
-    // Related listing (the product being purchased)
     [Required]
-    [ForeignKey("Listing")]
-    public int ListingID { get; set; }
-    public virtual Listing Listing { get; set; }
+    public int ListingId { get; set; } // FK
+    public virtual Listing Listing { get; set; } = null!; 
 
-    // The buyer who placed the order
     [Required]
-    [ForeignKey("Buyer")]
-    public int BuyerID { get; set; }
-    public virtual User Buyer { get; set; }
+    public int BuyerId { get; set; } // FK
+    public virtual User Buyer { get; set; } = null!; 
 
-    // Order date
+    // ==========================
+    // 📅 General Info
+    // ==========================
+
     public DateTime OrderDate { get; set; } = DateTime.Now;
 
-    // Order status (Pending, Confirmed, Shipped, Delivered, Cancelled)
     [Required]
-    [MaxLength(50)]
-    public string OrderStatus { get; set; } = "Pending";
+    public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
-    // Payment method (Online / CashOnDelivery)
     [Required]
-    [MaxLength(30)]
-    public string PaymentMethod { get; set; } = "CashOnDelivery";
+    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CashOnDelivery;
 
-    // Site commission percentage
+    // ==========================
+    // 💰 Financial Details
+    // ==========================
+
     [Range(0, 100)]
-    public decimal SiteCommission { get; set; }
+    public decimal SiteCommission { get; set; } = 5.0m;
 
-    // Total order amount
-    [Range(0, double.MaxValue)]
+    [Required]
+    [Column(TypeName = "decimal(18, 2)")]
+    [Range(0, (double)decimal.MaxValue)]
     public decimal TotalAmount { get; set; }
 
-    // Linked shipment (1:1 relationship)
-    public virtual Shipment Shipment { get; set; }
+    // ==========================
+    // 🚚 Relationships (1:1)
+    // ==========================
+
+    public virtual Shipment? Shipment { get; set; }
 }

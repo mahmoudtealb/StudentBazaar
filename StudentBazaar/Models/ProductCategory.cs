@@ -1,22 +1,17 @@
-﻿namespace StudentBazaar.web.Models
-{
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-
-    public class ProductCategory
+﻿    namespace StudentBazaar.Web.Models
     {
-        [Key]
-        public int CategoryID { get; set; }
+  
 
-        [Required]
-        [MaxLength(150)]
-        public string CategoryName { get; set; }
+        public class ProductCategory : BaseEntity
+        {
+            [Required]
+            [MaxLength(150)]
+            public string CategoryName { get; set; } = string.Empty; 
 
-        // ==========================
-        // 🔗 Relationships
-        // ==========================
+            // ==========================
+            // 🔗 Relationships (One Category -> Many Products)
+            // ==========================
 
-        // One Category -> Many Products
-        public ICollection<Product> Products { get; set; }
+            public ICollection<Product> Products { get; set; } = new List<Product>(); 
+        }
     }
-}
