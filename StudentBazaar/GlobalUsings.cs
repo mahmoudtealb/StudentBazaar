@@ -6,6 +6,9 @@ global using System.ComponentModel.DataAnnotations;
 global using System.ComponentModel.DataAnnotations.Schema;
 global using StudentBazaar.Web.Models.Enums;
 global using StudentBazaar.Web.Models;
+global using System.Linq.Expressions;
+global using StudentBazaar.Web.Repositories;
+
 
 
 

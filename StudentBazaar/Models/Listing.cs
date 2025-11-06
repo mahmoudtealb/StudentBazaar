@@ -1,4 +1,7 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StudentBazaar.Web.Models
 {
@@ -47,6 +50,6 @@ namespace StudentBazaar.Web.Models
         // 🔁 Reverse Relationships
         // ==========================
         public ICollection<Order> Orders { get; set; } = new List<Order>();
-        public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; } = new List<ShoppingCartItem>(); // ✅ initialized
+        public ICollection<ShoppingCartItem> ShoppingCartItems { get; set; } = new List<ShoppingCartItem>();
     }
 }
