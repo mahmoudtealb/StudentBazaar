@@ -1,10 +1,6 @@
-﻿
-
-namespace StudentBazaar.Web.Controllers
+﻿namespace StudentBazaar.Web.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProductImageController : ControllerBase
+    public class ProductImageController : Controller
     {
         private readonly IGenericRepository<ProductImage> _repo;
 
@@ -13,29 +9,63 @@ namespace StudentBazaar.Web.Controllers
             _repo = repo;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _repo.GetAllAsync(includeWord: "Product"));
+        // GET: ProductImage
+        public async Task<IActionResult> Index()
+        {
+            var images = await _repo.GetAllAsync(includeWord: "Product");
+            return View(images);
+        }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        // GET: ProductImage/Details/5
+        public async Task<IActionResult> Details(int id)
         {
             var entity = await _repo.GetFirstOrDefaultAsync(p => p.Id == id, includeWord: "Product");
-            return entity == null ? NotFound() : Ok(entity);
+            if (entity == null)
+                return NotFound();
+
+            return View(entity);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ProductImage entity)
+        // GET: ProductImage/Create
+        public IActionResult Create()
         {
+            return View();
+        }
+
+        // POST: ProductImage/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ProductImage entity)
+        {
+            if (!ModelState.IsValid)
+                return View(entity);
+
             await _repo.AddAsync(entity);
             await _repo.SaveAsync();
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, entity);
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] ProductImage entity)
+        // GET: ProductImage/Edit/5
+        public async Task<IActionResult> Edit(int id)
         {
             var existing = await _repo.GetFirstOrDefaultAsync(p => p.Id == id);
-            if (existing == null) return NotFound();
+            if (existing == null)
+                return NotFound();
+
+            return View(existing);
+        }
+
+        // POST: ProductImage/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, ProductImage entity)
+        {
+            if (!ModelState.IsValid)
+                return View(entity);
+
+            var existing = await _repo.GetFirstOrDefaultAsync(p => p.Id == id);
+            if (existing == null)
+                return NotFound();
 
             existing.ImageUrl = entity.ImageUrl;
             existing.IsMainImage = entity.IsMainImage;
@@ -43,18 +73,31 @@ namespace StudentBazaar.Web.Controllers
             existing.UpdatedAt = DateTime.Now;
 
             await _repo.SaveAsync();
-            return NoContent();
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpDelete("{id}")]
+        // GET: ProductImage/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var existing = await _repo.GetFirstOrDefaultAsync(p => p.Id == id);
-            if (existing == null) return NotFound();
+            var entity = await _repo.GetFirstOrDefaultAsync(p => p.Id == id);
+            if (entity == null)
+                return NotFound();
 
-            _repo.Remove(existing);
+            return View(entity);
+        }
+
+        // POST: ProductImage/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var entity = await _repo.GetFirstOrDefaultAsync(p => p.Id == id);
+            if (entity == null)
+                return NotFound();
+
+            _repo.Remove(entity);
             await _repo.SaveAsync();
-            return NoContent();
+            return RedirectToAction(nameof(Index));
         }
     }
 }

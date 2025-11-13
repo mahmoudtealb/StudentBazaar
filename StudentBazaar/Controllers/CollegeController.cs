@@ -2,9 +2,7 @@
 
 namespace StudentBazaar.Web.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class CollegeController : ControllerBase
+    public class CollegeController : Controller
     {
         private readonly IGenericRepository<College> _repo;
 
@@ -13,47 +11,94 @@ namespace StudentBazaar.Web.Controllers
             _repo = repo;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _repo.GetAllAsync(includeWord: "University"));
+        // GET: College
+        public async Task<IActionResult> Index()
+        {
+            var colleges = await _repo.GetAllAsync(includeWord: "University");
+            return View(colleges);
+        }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        // GET: College/Details/5
+        public async Task<IActionResult> Details(int id)
         {
             var entity = await _repo.GetFirstOrDefaultAsync(c => c.Id == id, includeWord: "University,Users,Majors");
-            return entity == null ? NotFound() : Ok(entity);
+            if (entity == null)
+                return NotFound();
+
+            return View(entity);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] College entity)
+        // GET: College/Create
+        public IActionResult Create()
         {
+            return View();
+        }
+
+        // POST: College/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(College entity)
+        {
+            if (!ModelState.IsValid)
+                return View(entity);
+
             await _repo.AddAsync(entity);
             await _repo.SaveAsync();
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, entity);
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] College entity)
+        // GET: College/Edit/5
+        public async Task<IActionResult> Edit(int id)
         {
             var existing = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
-            if (existing == null) return NotFound();
+            if (existing == null)
+                return NotFound();
+
+            return View(existing);
+        }
+
+        // POST: College/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, College entity)
+        {
+            if (!ModelState.IsValid)
+                return View(entity);
+
+            var existing = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
+            if (existing == null)
+                return NotFound();
 
             existing.CollegeName = entity.CollegeName;
             existing.UniversityId = entity.UniversityId;
             existing.UpdatedAt = DateTime.Now;
 
             await _repo.SaveAsync();
-            return NoContent();
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpDelete("{id}")]
+        // GET: College/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var existing = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
-            if (existing == null) return NotFound();
+            var entity = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
+            if (entity == null)
+                return NotFound();
 
-            _repo.Remove(existing);
+            return View(entity);
+        }
+
+        // POST: College/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var entity = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
+            if (entity == null)
+                return NotFound();
+
+            _repo.Remove(entity);
             await _repo.SaveAsync();
-            return NoContent();
+            return RedirectToAction(nameof(Index));
         }
     }
 }

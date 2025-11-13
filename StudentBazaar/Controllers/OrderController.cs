@@ -1,9 +1,6 @@
-﻿
-namespace StudentBazaar.Web.Controllers
+﻿namespace StudentBazaar.Web.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class OrderController : ControllerBase
+    public class OrderController : Controller
     {
         private readonly IGenericRepository<Order> _repo;
 
@@ -12,29 +9,63 @@ namespace StudentBazaar.Web.Controllers
             _repo = repo;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _repo.GetAllAsync(includeWord: "Listing,Buyer,Shipment"));
+        // GET: Order
+        public async Task<IActionResult> Index()
+        {
+            var orders = await _repo.GetAllAsync(includeWord: "Listing,Buyer,Shipment");
+            return View(orders);
+        }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        // GET: Order/Details/5
+        public async Task<IActionResult> Details(int id)
         {
             var entity = await _repo.GetFirstOrDefaultAsync(o => o.Id == id, includeWord: "Listing,Buyer,Shipment");
-            return entity == null ? NotFound() : Ok(entity);
+            if (entity == null)
+                return NotFound();
+
+            return View(entity);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Order entity)
+        // GET: Order/Create
+        public IActionResult Create()
         {
+            return View();
+        }
+
+        // POST: Order/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Order entity)
+        {
+            if (!ModelState.IsValid)
+                return View(entity);
+
             await _repo.AddAsync(entity);
             await _repo.SaveAsync();
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, entity);
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Order entity)
+        // GET: Order/Edit/5
+        public async Task<IActionResult> Edit(int id)
         {
             var existing = await _repo.GetFirstOrDefaultAsync(o => o.Id == id);
-            if (existing == null) return NotFound();
+            if (existing == null)
+                return NotFound();
+
+            return View(existing);
+        }
+
+        // POST: Order/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, Order entity)
+        {
+            if (!ModelState.IsValid)
+                return View(entity);
+
+            var existing = await _repo.GetFirstOrDefaultAsync(o => o.Id == id);
+            if (existing == null)
+                return NotFound();
 
             existing.ListingId = entity.ListingId;
             existing.BuyerId = entity.BuyerId;
@@ -46,18 +77,31 @@ namespace StudentBazaar.Web.Controllers
             existing.UpdatedAt = DateTime.Now;
 
             await _repo.SaveAsync();
-            return NoContent();
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpDelete("{id}")]
+        // GET: Order/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var existing = await _repo.GetFirstOrDefaultAsync(o => o.Id == id);
-            if (existing == null) return NotFound();
+            var entity = await _repo.GetFirstOrDefaultAsync(o => o.Id == id);
+            if (entity == null)
+                return NotFound();
 
-            _repo.Remove(existing);
+            return View(entity);
+        }
+
+        // POST: Order/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var entity = await _repo.GetFirstOrDefaultAsync(o => o.Id == id);
+            if (entity == null)
+                return NotFound();
+
+            _repo.Remove(entity);
             await _repo.SaveAsync();
-            return NoContent();
+            return RedirectToAction(nameof(Index));
         }
     }
 }

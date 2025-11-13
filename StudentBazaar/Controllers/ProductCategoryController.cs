@@ -1,10 +1,6 @@
-﻿
-
-namespace StudentBazaar.Web.Controllers
+﻿namespace StudentBazaar.Web.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ProductCategoryController : ControllerBase
+    public class ProductCategoryController : Controller
     {
         private readonly IGenericRepository<ProductCategory> _repo;
 
@@ -13,46 +9,93 @@ namespace StudentBazaar.Web.Controllers
             _repo = repo;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll() => Ok(await _repo.GetAllAsync(includeWord: "Products"));
+        // GET: ProductCategory
+        public async Task<IActionResult> Index()
+        {
+            var categories = await _repo.GetAllAsync(includeWord: "Products");
+            return View(categories);
+        }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        // GET: ProductCategory/Details/5
+        public async Task<IActionResult> Details(int id)
         {
             var entity = await _repo.GetFirstOrDefaultAsync(c => c.Id == id, includeWord: "Products");
-            return entity == null ? NotFound() : Ok(entity);
+            if (entity == null)
+                return NotFound();
+
+            return View(entity);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ProductCategory entity)
+        // GET: ProductCategory/Create
+        public IActionResult Create()
         {
+            return View();
+        }
+
+        // POST: ProductCategory/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ProductCategory entity)
+        {
+            if (!ModelState.IsValid)
+                return View(entity);
+
             await _repo.AddAsync(entity);
             await _repo.SaveAsync();
-            return CreatedAtAction(nameof(GetById), new { id = entity.Id }, entity);
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] ProductCategory entity)
+        // GET: ProductCategory/Edit/5
+        public async Task<IActionResult> Edit(int id)
         {
             var existing = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
-            if (existing == null) return NotFound();
+            if (existing == null)
+                return NotFound();
+
+            return View(existing);
+        }
+
+        // POST: ProductCategory/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, ProductCategory entity)
+        {
+            if (!ModelState.IsValid)
+                return View(entity);
+
+            var existing = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
+            if (existing == null)
+                return NotFound();
 
             existing.CategoryName = entity.CategoryName;
             existing.UpdatedAt = DateTime.Now;
 
             await _repo.SaveAsync();
-            return NoContent();
+            return RedirectToAction(nameof(Index));
         }
 
-        [HttpDelete("{id}")]
+        // GET: ProductCategory/Delete/5
         public async Task<IActionResult> Delete(int id)
         {
-            var existing = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
-            if (existing == null) return NotFound();
+            var entity = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
+            if (entity == null)
+                return NotFound();
 
-            _repo.Remove(existing);
+            return View(entity);
+        }
+
+        // POST: ProductCategory/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var entity = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
+            if (entity == null)
+                return NotFound();
+
+            _repo.Remove(entity);
             await _repo.SaveAsync();
-            return NoContent();
+            return RedirectToAction(nameof(Index));
         }
     }
 }
