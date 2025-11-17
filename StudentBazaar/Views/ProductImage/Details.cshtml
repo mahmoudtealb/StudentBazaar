@@ -1,0 +1,20 @@
+﻿@model StudentBazaar.Web.Models.ProductImage
+
+@{
+    ViewData["Title"] = "Image Details";
+}
+
+<h2 class="mt-3">Image Details</h2>
+
+<div class="card p-3">
+
+    <img src="@Model.ImageUrl" width="150" height="150" style="object-fit:cover;" />
+
+    <p><strong>Main Image:</strong> @Model.IsMainImage</p>
+
+    <p><strong>Product:</strong> @Model.Product?.Name</p>
+
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+
+</div>

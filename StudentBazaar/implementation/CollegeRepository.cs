@@ -1,6 +1,6 @@
 ﻿
 
-namespace StudentBazaar.Web.implementation;
+namespace StudentBazaar.Web.Implementation;
 
 // Now ICollegeRepository is recognized
 public class CollegeRepository : GenericRepository<College>, ICollegeRepository

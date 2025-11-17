@@ -1,0 +1,28 @@
+﻿@model StudentBazaar.Web.Models.College
+
+@{
+    ViewData["Title"] = "Edit College";
+}
+
+<h2>Edit College</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label asp-for="CollegeName" class="form-label"></label>
+        <input asp-for="CollegeName" class="form-control" />
+        <span asp-validation-for="CollegeName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="UniversityId" class="form-label">University</label>
+        <select asp-for="UniversityId" class="form-select" asp-items="ViewBag.Universities">
+            <option value="">-- Select University --</option>
+        </select>
+        <span asp-validation-for="UniversityId" class="text-danger"></span>
+    </div>
+
+    <button class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+</form>

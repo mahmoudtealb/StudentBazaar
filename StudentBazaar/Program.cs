@@ -1,6 +1,4 @@
 ﻿
-using StudentBazaar.Web.implementation;
-using StudentBazaar.Web.Implementation;
 
 var builder = WebApplication.CreateBuilder(args);
 
