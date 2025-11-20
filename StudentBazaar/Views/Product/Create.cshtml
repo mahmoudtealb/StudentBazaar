@@ -1,4 +1,4 @@
-﻿@model StudentBazaar.Web.Models.Product
+﻿@model StudentBazaar.Web.ViewModels.ProductCreateViewModel
 
 @{
     ViewData["Title"] = "Create Product";
@@ -6,24 +6,35 @@
 
 <h2 class="mt-3">Create Product</h2>
 
-<form asp-action="Create" method="post">
+<form asp-action="Create" method="post" enctype="multipart/form-data">
 
     <div class="mb-3">
-        <label asp-for="Name" class="form-label"></label>
-        <input asp-for="Name" class="form-control" />
-        <span asp-validation-for="Name" class="text-danger"></span>
+        <label asp-for="Product.Name" class="form-label"></label>
+        <input asp-for="Product.Name" class="form-control" />
+        <span asp-validation-for="Product.Name" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="CategoryId"></label>
-        <input asp-for="CategoryId" class="form-control" />
-        <span asp-validation-for="CategoryId" class="text-danger"></span>
+        <label asp-for="Product.CategoryId"></label>
+        <select asp-for="Product.CategoryId" class="form-control"
+                asp-items="Model.Categories">
+            <option value="">-- Select Category --</option>
+        </select>
+        <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="StudyYearId"></label>
-        <input asp-for="StudyYearId" class="form-control" />
-        <span asp-validation-for="StudyYearId" class="text-danger"></span>
+        <label asp-for="Product.StudyYearId"></label>
+        <select asp-for="Product.StudyYearId" class="form-control"
+                asp-items="Model.StudyYears">
+            <option value="">-- Select Study Year --</option>
+        </select>
+        <span asp-validation-for="Product.StudyYearId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label>Product Images</label>
+        <input type="file" name="Files" multiple class="form-control" />
     </div>
 
     <button type="submit" class="btn btn-success">Save</button>

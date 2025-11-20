@@ -12,13 +12,12 @@
 
 <div class="card p-3">
     <h4>@Model.Name</h4>
-    <p>Category: @Model.CategoryId</p>
-    <p>Study Year: @Model.StudyYearId</p>
+    <p>Category: @Model.Category?.CategoryName</p>
+    <p>Study Year: @Model.StudyYear?.YearName</p>
 </div>
 
 <form method="post" asp-action="Delete">
     <input type="hidden" asp-for="Id" />
-
     <button type="submit" class="btn btn-danger mt-3">Delete</button>
     <a asp-action="Index" class="btn btn-secondary mt-3">Cancel</a>
 </form>

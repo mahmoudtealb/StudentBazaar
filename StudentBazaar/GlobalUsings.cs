@@ -10,6 +10,8 @@ global using System.Linq.Expressions;
 global using StudentBazaar.Web.Repositories;
 global using StudentBazaar.Web.Implementation;
 global using StudentBazaar.Web.implementation;
+global using Microsoft.AspNetCore.Mvc.Rendering;
+global using Microsoft.AspNetCore.Identity;
 
 
 

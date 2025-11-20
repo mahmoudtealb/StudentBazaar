@@ -1,9 +1,5 @@
 ﻿@model StudentBazaar.Web.Models.College
 
-@{
-    ViewData["Title"] = "Delete College";
-}
-
 <h2 class="text-danger">Delete College</h2>
 
 <div class="alert alert-danger">
@@ -12,6 +8,7 @@
 
 <form asp-action="Delete" method="post">
     <input type="hidden" asp-for="Id" />
+    @Html.AntiForgeryToken()
     <button class="btn btn-danger">Delete</button>
     <a asp-action="Index" class="btn btn-secondary">Cancel</a>
 </form>

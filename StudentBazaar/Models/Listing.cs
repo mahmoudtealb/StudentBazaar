@@ -44,7 +44,7 @@ namespace StudentBazaar.Web.Models
         public Product Product { get; set; } = null!;
 
         [ForeignKey(nameof(SellerId))]
-        public User Seller { get; set; } = null!;
+        public ApplicationUser Seller { get; set; } = null!;
 
         // ==========================
         // 🔁 Reverse Relationships

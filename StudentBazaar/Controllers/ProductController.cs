@@ -1,12 +1,22 @@
-﻿namespace StudentBazaar.Web.Controllers
+﻿
+using StudentBazaar.Web.ViewModels;
+
+namespace StudentBazaar.Web.Controllers
 {
     public class ProductController : Controller
     {
         private readonly IGenericRepository<Product> _repo;
+        private readonly IGenericRepository<ProductCategory> _categoryRepo;
+        private readonly IGenericRepository<StudyYear> _studyYearRepo;
 
-        public ProductController(IGenericRepository<Product> repo)
+        public ProductController(
+            IGenericRepository<Product> repo,
+            IGenericRepository<ProductCategory> categoryRepo,
+            IGenericRepository<StudyYear> studyYearRepo)
         {
             _repo = repo;
+            _categoryRepo = categoryRepo;
+            _studyYearRepo = studyYearRepo;
         }
 
         // GET: Product
@@ -27,50 +37,128 @@
         }
 
         // GET: Product/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View();
+            var model = new ProductCreateViewModel
+            {
+                Categories = (await _categoryRepo.GetAllAsync())
+                                .Select(c => new SelectListItem(c.CategoryName, c.Id.ToString())),
+                StudyYears = (await _studyYearRepo.GetAllAsync())
+                                .Select(s => new SelectListItem(s.YearName, s.Id.ToString()))
+            };
+
+            return View(model);
         }
 
         // POST: Product/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Product entity)
+        public async Task<IActionResult> Create(ProductCreateViewModel model)
         {
             if (!ModelState.IsValid)
-                return View(entity);
+            {
+                model.Categories = (await _categoryRepo.GetAllAsync())
+                                .Select(c => new SelectListItem(c.CategoryName, c.Id.ToString()));
+                model.StudyYears = (await _studyYearRepo.GetAllAsync())
+                                .Select(s => new SelectListItem(s.YearName, s.Id.ToString()));
+                return View(model);
+            }
 
-            await _repo.AddAsync(entity);
+            // إضافة المنتج
+            var product = model.Product;
+            await _repo.AddAsync(product);
             await _repo.SaveAsync();
+
+            // رفع الصور
+            if (model.Files != null && model.Files.Any())
+            {
+                foreach (var file in model.Files)
+                {
+                    var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", fileName);
+
+                    using (var stream = new FileStream(path, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    product.Images.Add(new ProductImage
+                    {
+                        ProductId = product.Id,
+                        ImageUrl = "/uploads/" + fileName,
+                        IsMainImage = false
+                    });
+                }
+
+                await _repo.SaveAsync();
+            }
+
             return RedirectToAction(nameof(Index));
         }
 
         // GET: Product/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            var existing = await _repo.GetFirstOrDefaultAsync(p => p.Id == id);
+            var existing = await _repo.GetFirstOrDefaultAsync(p => p.Id == id, includeWord: "Images");
             if (existing == null)
                 return NotFound();
 
-            return View(existing);
+            var model = new ProductCreateViewModel
+            {
+                Product = existing,
+                Categories = (await _categoryRepo.GetAllAsync())
+                                .Select(c => new SelectListItem(c.CategoryName  , c.Id.ToString())),
+                StudyYears = (await _studyYearRepo.GetAllAsync())
+                                .Select(s => new SelectListItem(s.YearName, s.Id.ToString()))
+            };
+
+            return View(model);
         }
 
         // POST: Product/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Product entity)
+        public async Task<IActionResult> Edit(int id, ProductCreateViewModel model)
         {
             if (!ModelState.IsValid)
-                return View(entity);
+            {
+                model.Categories = (await _categoryRepo.GetAllAsync())
+                                .Select(c => new SelectListItem(c.CategoryName, c.Id.ToString()));
+                model.StudyYears = (await _studyYearRepo.GetAllAsync())
+                                .Select(s => new SelectListItem(s.YearName, s.Id.ToString()));
+                return View(model);
+            }
 
-            var existing = await _repo.GetFirstOrDefaultAsync(p => p.Id == id);
+            var existing = await _repo.GetFirstOrDefaultAsync(p => p.Id == id, includeWord: "Images");
             if (existing == null)
                 return NotFound();
 
-            existing.Name = entity.Name;
-            existing.CategoryId = entity.CategoryId;
-            existing.StudyYearId = entity.StudyYearId;
+            existing.Name = model.Product.Name;
+            existing.CategoryId = model.Product.CategoryId;
+            existing.StudyYearId = model.Product.StudyYearId;
             existing.UpdatedAt = DateTime.Now;
+
+            // رفع صور جديدة
+            if (model.Files != null && model.Files.Any())
+            {
+                foreach (var file in model.Files)
+                {
+                    var fileName = $"{Guid.NewGuid()}_{file.FileName}";
+                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads", fileName);
+
+                    using (var stream = new FileStream(path, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    existing.Images.Add(new ProductImage
+                    {
+                        ProductId = existing.Id,
+                        ImageUrl = "/uploads/" + fileName,
+                        IsMainImage = false
+                    });
+                }
+            }
 
             await _repo.SaveAsync();
             return RedirectToAction(nameof(Index));

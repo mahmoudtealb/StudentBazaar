@@ -1,30 +1,46 @@
-﻿namespace StudentBazaar.Web.Controllers
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using StudentBazaar.Web.Models;
+using StudentBazaar.Web.Repositories;
+
+namespace StudentBazaar.Web.Controllers
 {
     public class UserController : Controller
     {
-        private readonly IGenericRepository<User> _repo;
+        private readonly IUserRepository _userRepo;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UserController(IGenericRepository<User> repo)
+        public UserController(IUserRepository userRepo, UserManager<ApplicationUser> userManager)
         {
-            _repo = repo;
+            _userRepo = userRepo;
+            _userManager = userManager;
         }
 
         // GET: User
         public async Task<IActionResult> Index()
         {
-            var users = await _repo.GetAllAsync(includeWord: "University,College,ListingsPosted,OrdersPlaced,RatingsGiven,ShipmentsHandled,ShoppingCartItems");
+            var users = await _userManager.Users
+                                          .Include(u => u.University)
+                                          .Include(u => u.College)
+                                          .ToListAsync();
             return View(users);
         }
 
         // GET: User/Details/5
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(string id)
         {
-            var entity = await _repo.GetFirstOrDefaultAsync(u => u.Id == id, includeWord: "University,College,ListingsPosted,OrdersPlaced,RatingsGiven,ShipmentsHandled,ShoppingCartItems");
+            if (string.IsNullOrEmpty(id))
+                return BadRequest();
+
+            var entity = await _userManager.FindByIdAsync(id);
+
             if (entity == null)
                 return NotFound();
 
             return View(entity);
         }
+
 
         // GET: User/Create
         public IActionResult Create()
@@ -35,20 +51,33 @@
         // POST: User/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(User entity)
+        public async Task<IActionResult> Create(ApplicationUser entity, string password, string role)
         {
             if (!ModelState.IsValid)
                 return View(entity);
 
-            await _repo.AddAsync(entity);
-            await _repo.SaveAsync();
+            var result = await _userRepo.CreateAsync(entity, password);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError("", error.Description);
+
+                return View(entity);
+            }
+
+            if (!string.IsNullOrEmpty(role))
+                await _userRepo.AddToRoleAsync(entity, role);
+
             return RedirectToAction(nameof(Index));
         }
 
         // GET: User/Edit/5
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(string id)
         {
-            var existing = await _repo.GetFirstOrDefaultAsync(u => u.Id == id);
+            if (string.IsNullOrEmpty(id))
+                return BadRequest();
+
+            var existing = await _userManager.FindByIdAsync(id);
             if (existing == null)
                 return NotFound();
 
@@ -58,33 +87,35 @@
         // POST: User/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, User entity)
+        public async Task<IActionResult> Edit(string id, ApplicationUser entity)
         {
             if (!ModelState.IsValid)
                 return View(entity);
 
-            var existing = await _repo.GetFirstOrDefaultAsync(u => u.Id == id);
+            var existing = await _userManager.FindByIdAsync(id);
             if (existing == null)
                 return NotFound();
 
             existing.FullName = entity.FullName;
             existing.Email = entity.Email;
-            existing.Phone = entity.Phone;
-            existing.PasswordHash = entity.PasswordHash;
-            existing.Role = entity.Role;
+            existing.UserName = entity.Email; // ضروري للـ Identity
+            existing.PhoneNumber = entity.PhoneNumber;
             existing.Address = entity.Address;
             existing.UniversityId = entity.UniversityId;
             existing.CollegeId = entity.CollegeId;
-            existing.UpdatedAt = DateTime.Now;
 
-            await _repo.SaveAsync();
+            await _userRepo.UpdateAsync(existing);
+
             return RedirectToAction(nameof(Index));
         }
 
         // GET: User/Delete/5
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(string id)
         {
-            var entity = await _repo.GetFirstOrDefaultAsync(u => u.Id == id);
+            if (string.IsNullOrEmpty(id))
+                return BadRequest();
+
+            var entity = await _userManager.FindByIdAsync(id);
             if (entity == null)
                 return NotFound();
 
@@ -94,14 +125,13 @@
         // POST: User/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(string id)
         {
-            var entity = await _repo.GetFirstOrDefaultAsync(u => u.Id == id);
+            var entity = await _userManager.FindByIdAsync(id);
             if (entity == null)
                 return NotFound();
 
-            _repo.Remove(entity);
-            await _repo.SaveAsync();
+            await _userManager.DeleteAsync(entity);
             return RedirectToAction(nameof(Index));
         }
     }

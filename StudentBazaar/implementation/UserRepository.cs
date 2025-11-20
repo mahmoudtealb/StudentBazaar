@@ -1,37 +1,101 @@
-﻿namespace StudentBazaar.Web.implementation;
+﻿
 
-public class UserRepository : GenericRepository<User>, IUserRepository
+namespace StudentBazaar.Web.implementation
 {
-    private readonly ApplicationDbContext _context;
-
-    public UserRepository(ApplicationDbContext context) : base(context)
+    public class UserRepository : IUserRepository
     {
-        _context = context;
-    }
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ApplicationDbContext _context;
 
-    // Update entity
-    public void Update(User user)
-    {
-        _context.Users.Update(user);
-    }
+        public UserRepository(UserManager<ApplicationUser> userManager,
+                              SignInManager<ApplicationUser> signInManager,
+                              ApplicationDbContext context)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _context = context;
+        }
 
-    // Get user by email
-    public async Task<User?> GetByEmailAsync(string email)
-    {
-        return await _context.Users
-                             .Include(u => u.University)
-                             .Include(u => u.College)
-                             .FirstOrDefaultAsync(u => u.Email == email);
-    }
+        // ==========================
+        // Create a new user with password
+        // ==========================
+        public async Task<IdentityResult> CreateAsync(ApplicationUser user, string password)
+        {
+            return await _userManager.CreateAsync(user, password);
+        }
 
-    // Override to support multiple includes via string
-    public new async Task<IEnumerable<User>> GetAllAsync(string includeWord = null)
-    {
-        return await base.GetAllAsync(null, includeWord);
-    }
+        // ==========================
+        // Update user details
+        // ==========================
+        public async Task<IdentityResult> UpdateAsync(ApplicationUser user)
+        {
+            return await _userManager.UpdateAsync(user);
+        }
 
-    public new async Task<User?> GetFirstOrDefaultAsync(Expression<Func<User, bool>> filter, string includeWord = null)
-    {
-        return await base.GetFirstOrDefaultAsync(filter, includeWord);
+        // ==========================
+        // Get user by email
+        // ==========================
+        public async Task<ApplicationUser?> GetByEmailAsync(string email)
+        {
+            return await _userManager.Users
+                .Include(u => u.University)
+                .Include(u => u.College)
+                .FirstOrDefaultAsync(u => u.Email == email);
+        }
+
+        // ==========================
+        // Sign in user with password
+        // ==========================
+        public async Task<Microsoft.AspNetCore.Identity.SignInResult> PasswordSignInAsync(string email, string password, bool rememberMe)
+        {
+            return await _signInManager.PasswordSignInAsync(email, password, rememberMe, false);
+        }
+
+        // ==========================
+        // Sign out current user
+        // ==========================
+        public async Task SignOutAsync()
+        {
+            await _signInManager.SignOutAsync();
+        }
+
+        // ==========================
+        // Get roles of a user
+        // ==========================
+        public async Task<IList<string>> GetRolesAsync(ApplicationUser user)
+        {
+            return await _userManager.GetRolesAsync(user);
+        }
+
+        // ==========================
+        // Add user to a role
+        // ==========================
+        public async Task<IdentityResult> AddToRoleAsync(ApplicationUser user, string role)
+        {
+            return await _userManager.AddToRoleAsync(user, role);
+        }
+
+        // ==========================
+        // Get all users with related University and College
+        // ==========================
+        public async Task<IEnumerable<ApplicationUser>> GetAllAsync()
+        {
+            return await _userManager.Users
+                .Include(u => u.University)
+                .Include(u => u.College)
+                .ToListAsync();
+        }
+
+        // ==========================
+        // Get first user matching a filter
+        // ==========================
+        public async Task<ApplicationUser?> GetFirstOrDefaultAsync(Expression<Func<ApplicationUser, bool>> filter)
+        {
+            return await _userManager.Users
+                .Include(u => u.University)
+                .Include(u => u.College)
+                .FirstOrDefaultAsync(filter);
+        }
     }
 }

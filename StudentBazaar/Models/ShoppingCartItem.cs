@@ -17,7 +17,7 @@ public class ShoppingCartItem:BaseEntity
     // ==========================
 
     [ForeignKey(nameof(UserId))]
-    public User User { get; set; } = null!;
+    public ApplicationUser User { get; set; } = null!;
 
     [ForeignKey(nameof(ListingId))]
     public Listing Listing { get; set; } = null!;

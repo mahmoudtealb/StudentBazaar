@@ -17,13 +17,14 @@
         public int UniversityId { get; set; }
 
         [ForeignKey(nameof(UniversityId))]
-        public University University { get; set; } = null!; 
+        public University University { get; set; } = null!;
 
         // ==========================
         // 🔗 Reverse Relationships (One College -> Many Users/Majors)
         // ==========================
 
-        public ICollection<User> Users { get; set; } = new List<User>(); 
+        public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
+
         public ICollection<Major> Majors { get; set; } = new List<Major>(); 
     }
 }

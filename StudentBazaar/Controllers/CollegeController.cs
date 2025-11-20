@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using StudentBazaar.Web.Models;
-using StudentBazaar.Web.Repositories;
-
+﻿
 namespace StudentBazaar.Web.Controllers
 {
     public class CollegeController : Controller
@@ -18,14 +14,14 @@ namespace StudentBazaar.Web.Controllers
             _universityRepo = universityRepo;
         }
 
-        // GET: College
+        // 📚 GET: College (Read - All)
         public async Task<IActionResult> Index()
         {
             var colleges = await _repo.GetAllAsync(includeWord: "University");
             return View(colleges);
         }
 
-        // GET: College/Details/5
+        // 🔎 GET: College/Details/5 (Read - Single)
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return BadRequest();
@@ -38,14 +34,14 @@ namespace StudentBazaar.Web.Controllers
             return View(college);
         }
 
-        // GET: College/Create
+        // ➕ GET: College/Create
         public async Task<IActionResult> Create()
         {
             await PopulateUniversitiesDropDown();
             return View();
         }
 
-        // POST: College/Create
+        // 💾 POST: College/Create (Create)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(College college)
@@ -61,7 +57,7 @@ namespace StudentBazaar.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: College/Edit/5
+        // ✏️ GET: College/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return BadRequest();
@@ -73,7 +69,7 @@ namespace StudentBazaar.Web.Controllers
             return View(college);
         }
 
-        // POST: College/Edit/5
+        // 🔄 POST: College/Edit/5 (Update)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, College college)
@@ -87,15 +83,18 @@ namespace StudentBazaar.Web.Controllers
             var existing = await _repo.GetFirstOrDefaultAsync(c => c.Id == id);
             if (existing == null) return NotFound();
 
+            // Update tracked entity properties
             existing.CollegeName = college.CollegeName;
             existing.UniversityId = college.UniversityId;
             existing.UpdatedAt = DateTime.Now;
 
+            // Note: The controller handles the update directly on the tracked entity,
+            // then calls SaveAsync() from the generic repository.
             await _repo.SaveAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: College/Delete/5
+        // 🗑️ GET: College/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return BadRequest();
@@ -108,7 +107,7 @@ namespace StudentBazaar.Web.Controllers
             return View(college);
         }
 
-        // POST: College/Delete/5
+        // ❌ POST: College/Delete/5 (Delete)
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -121,7 +120,7 @@ namespace StudentBazaar.Web.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Helper method لتحميل الجامعات في ViewBag
+        // 🛠️ Helper method to load universities for dropdown
         private async Task PopulateUniversitiesDropDown(int? selectedId = null)
         {
             var universities = await _universityRepo.GetAllAsync();
@@ -132,5 +131,4 @@ namespace StudentBazaar.Web.Controllers
                 selectedId
             );
         }
-    }
-}
+    }}

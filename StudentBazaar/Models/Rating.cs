@@ -5,7 +5,7 @@ public class Rating : BaseEntity
     // User who created the rating
     [Required]
     public int UserId { get; set; } // FK updated
-    public virtual User User { get; set; } = null!; 
+    public virtual ApplicationUser User { get; set; } = null!; 
 
     // Product being rated
     [Required]

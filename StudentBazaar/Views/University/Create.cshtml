@@ -3,16 +3,18 @@
 <h2>Create University</h2>
 
 <form asp-action="Create" method="post">
-    <div class="mb-3">
-        <label asp-for="UniversityName" class="form-label"></label>
+    <div class="form-group">
+        <label asp-for="UniversityName"></label>
         <input asp-for="UniversityName" class="form-control" />
         <span asp-validation-for="UniversityName" class="text-danger"></span>
     </div>
-    <div class="mb-3">
-        <label asp-for="Location" class="form-label"></label>
+
+    <div class="form-group">
+        <label asp-for="Location"></label>
         <input asp-for="Location" class="form-control" />
         <span asp-validation-for="Location" class="text-danger"></span>
     </div>
+
     <button type="submit" class="btn btn-success">Create</button>
     <a asp-action="Index" class="btn btn-secondary">Back</a>
 </form>

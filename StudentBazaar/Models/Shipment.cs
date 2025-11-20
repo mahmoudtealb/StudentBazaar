@@ -29,6 +29,6 @@ namespace StudentBazaar.Web.Models
         public virtual Order Order { get; set; } = null!; 
 
         [ForeignKey("ShipperId")]
-        public virtual User Shipper { get; set; } = null!; 
+        public virtual ApplicationUser Shipper { get; set; } = null!; 
     }
 }

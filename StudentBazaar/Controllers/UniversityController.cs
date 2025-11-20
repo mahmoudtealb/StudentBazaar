@@ -1,17 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using StudentBazaar.Web.Models;
-using StudentBazaar.Web.Repositories;
-using System;
-using System.Threading.Tasks;
-
+﻿
 namespace StudentBazaar.Web.Controllers
 {
     public class UniversityController : Controller
     {
-        private readonly IUniversityRepository _repo;
+        private readonly IGenericRepository<University> _repo;
 
-        public UniversityController(IUniversityRepository repo)
+        public UniversityController(IGenericRepository<University> repo)
         {
             _repo = repo;
         }
@@ -19,18 +13,24 @@ namespace StudentBazaar.Web.Controllers
         // GET: University
         public async Task<IActionResult> Index()
         {
-            var universities = await _repo.GetAllAsync("Colleges,Users");
+            // جلب كل الجامعات مع Colleges و Users لو موجود
+            var universities = await _repo.GetAllAsync(includeWord: "Colleges,Users");
             return View(universities);
         }
 
         // GET: University/Details/5
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int? id)
         {
-            var entity = await _repo.GetFirstOrDefaultAsync(u => u.Id == id, "Colleges,Users");
-            if (entity == null)
-                return NotFound();
+            if (id == null) return BadRequest();
 
-            return View(entity);
+            var university = await _repo.GetFirstOrDefaultAsync(
+                u => u.Id == id,
+                includeWord: "Colleges,Users"
+            );
+
+            if (university == null) return NotFound();
+
+            return View(university);
         }
 
         // GET: University/Create
@@ -42,78 +42,79 @@ namespace StudentBazaar.Web.Controllers
         // POST: University/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(University entity)
+        public async Task<IActionResult> Create(University university)
         {
             if (!ModelState.IsValid)
-                return View(entity);
+            {
+                return View(university);
+            }
 
-            await _repo.AddAsync(entity);
+            await _repo.AddAsync(university);
             await _repo.SaveAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
         // GET: University/Edit/5
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int? id)
         {
-            var existing = await _repo.GetFirstOrDefaultAsync(u => u.Id == id);
-            if (existing == null)
-                return NotFound();
+            if (id == null) return BadRequest();
 
-            return View(existing);
+            var university = await _repo.GetFirstOrDefaultAsync(u => u.Id == id);
+            if (university == null) return NotFound();
+
+            return View(university);
         }
 
         // POST: University/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, University entity)
+        public async Task<IActionResult> Edit(int id, University university)
         {
             if (!ModelState.IsValid)
-                return View(entity);
+            {
+                return View(university);
+            }
 
             var existing = await _repo.GetFirstOrDefaultAsync(u => u.Id == id);
-            if (existing == null)
-                return NotFound();
+            if (existing == null) return NotFound();
 
-            existing.UniversityName = entity.UniversityName;
-            existing.Location = entity.Location;
+            existing.UniversityName = university.UniversityName;
             existing.UpdatedAt = DateTime.Now;
 
-            _repo.Update(existing);
+           
             await _repo.SaveAsync();
 
             return RedirectToAction(nameof(Index));
         }
 
         // GET: University/Delete/5
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int? id)
         {
-            var entity = await _repo.GetFirstOrDefaultAsync(u => u.Id == id);
-            if (entity == null)
-                return NotFound();
+            if (id == null) return BadRequest();
 
-            return View(entity);
+            var university = await _repo.GetFirstOrDefaultAsync(
+                u => u.Id == id,
+                includeWord: "Colleges,Users"
+            );
+
+            if (university == null) return NotFound();
+
+            return View(university);
         }
 
         // POST: University/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost, ActionName("DeleteConfirmed")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var entity = await _repo.GetFirstOrDefaultAsync(u => u.Id == id);
-            if (entity == null)
-                return NotFound();
+            var university = await _repo.GetFirstOrDefaultAsync(u => u.Id == id);
+            if (university == null) return NotFound();
 
-            try
-            {
-                _repo.Remove(entity);
-                await _repo.SaveAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            catch (DbUpdateException)
-            {
-                ModelState.AddModelError("", "لا يمكن حذف الجامعة لأنها مرتبطة بمستخدمين أو كليات.");
-                return View(entity);
-            }
+            _repo.Remove(university);
+            await _repo.SaveAsync();
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

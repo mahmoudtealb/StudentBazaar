@@ -1,22 +1,18 @@
 ﻿@model StudentBazaar.Web.Models.University
 
-@{
-    ViewData["Title"] = "Edit University";
-}
-
 <h2>Edit University</h2>
 
 <form asp-action="Edit" method="post">
     <input type="hidden" asp-for="Id" />
 
-    <div class="mb-3">
-        <label asp-for="UniversityName" class="form-label"></label>
+    <div class="form-group">
+        <label asp-for="UniversityName"></label>
         <input asp-for="UniversityName" class="form-control" />
         <span asp-validation-for="UniversityName" class="text-danger"></span>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="Location" class="form-label"></label>
+    <div class="form-group">
+        <label asp-for="Location"></label>
         <input asp-for="Location" class="form-control" />
         <span asp-validation-for="Location" class="text-danger"></span>
     </div>

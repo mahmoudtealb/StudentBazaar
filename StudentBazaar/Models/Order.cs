@@ -10,7 +10,7 @@ public class Order : BaseEntity
 
     [Required]
     public int BuyerId { get; set; } // FK
-    public virtual User Buyer { get; set; } = null!; 
+    public virtual ApplicationUser Buyer { get; set; } = null!; 
 
     // ==========================
     // 📅 General Info
