@@ -1,11 +1,17 @@
-﻿
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using StudentBazaar.Web.Models;
+using StudentBazaar.Web.Repositories;
+using System;
+using System.Threading.Tasks;
+
 namespace StudentBazaar.Web.Controllers
 {
     public class UniversityController : Controller
     {
-        private readonly IGenericRepository<University> _repo;
+        private readonly IUniversityRepository _repo;
 
-        public UniversityController(IGenericRepository<University> repo)
+        public UniversityController(IUniversityRepository repo)
         {
             _repo = repo;
         }
@@ -13,14 +19,14 @@ namespace StudentBazaar.Web.Controllers
         // GET: University
         public async Task<IActionResult> Index()
         {
-            var universities = await _repo.GetAllAsync(includeWord: "Colleges,Users");
+            var universities = await _repo.GetAllAsync("Colleges,Users");
             return View(universities);
         }
 
         // GET: University/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var entity = await _repo.GetFirstOrDefaultAsync(u => u.Id == id, includeWord: "Colleges,Users");
+            var entity = await _repo.GetFirstOrDefaultAsync(u => u.Id == id, "Colleges,Users");
             if (entity == null)
                 return NotFound();
 
@@ -72,7 +78,9 @@ namespace StudentBazaar.Web.Controllers
             existing.Location = entity.Location;
             existing.UpdatedAt = DateTime.Now;
 
+            _repo.Update(existing);
             await _repo.SaveAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -95,9 +103,17 @@ namespace StudentBazaar.Web.Controllers
             if (entity == null)
                 return NotFound();
 
-            _repo.Remove(entity);
-            await _repo.SaveAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _repo.Remove(entity);
+                await _repo.SaveAsync();
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException)
+            {
+                ModelState.AddModelError("", "لا يمكن حذف الجامعة لأنها مرتبطة بمستخدمين أو كليات.");
+                return View(entity);
+            }
         }
     }
 }

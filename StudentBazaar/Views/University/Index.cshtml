@@ -1,0 +1,39 @@
+﻿@model IEnumerable<StudentBazaar.Web.Models.University>
+
+@{
+    ViewData["Title"] = "الجامعات";
+}
+
+<h2>الجامعات</h2>
+
+<p>
+    <a class="btn btn-primary" asp-action="Create">إضافة جامعة جديدة</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>الاسم</th>
+            <th>الموقع</th>
+            <th>عدد الكليات</th>
+            <th>عدد المستخدمين</th>
+            <th>الإجراءات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var uni in Model)
+        {
+            <tr>
+                <td>@uni.UniversityName</td>
+                <td>@uni.Location</td>
+                <td>@uni.Colleges?.Count ?? 0</td>
+                <td>@uni.Users?.Count ?? 0</td>
+                <td>
+                    <a class="btn btn-info btn-sm" asp-action="Details" asp-route-id="@uni.Id">عرض</a>
+                    <a class="btn btn-warning btn-sm" asp-action="Edit" asp-route-id="@uni.Id">تعديل</a>
+                    <a class="btn btn-danger btn-sm" asp-action="Delete" asp-route-id="@uni.Id">حذف</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

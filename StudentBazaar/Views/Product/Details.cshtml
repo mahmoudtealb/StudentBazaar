@@ -1,0 +1,23 @@
+﻿@model StudentBazaar.Web.Models.Product
+
+@{
+    ViewData["Title"] = "Product Details";
+}
+
+<h2 class="mt-3">Product Details</h2>
+
+<div class="card p-3">
+
+    <h4>@Model.Name</h4>
+
+    <p><strong>Category:</strong> @Model.Category?.CategoryName</p>
+    <p><strong>Study Year:</strong> @Model.StudyYear?.YearName</p>
+
+    <p><strong>Images Count:</strong> @Model.Images.Count</p>
+    <p><strong>Listings Count:</strong> @Model.Listings.Count</p>
+    <p><strong>Ratings Count:</strong> @Model.Ratings.Count</p>
+
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back</a>
+
+</div>

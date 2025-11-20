@@ -10,10 +10,21 @@ namespace StudentBazaar.Web.Implementation
             _context = context;
         }
 
+        // Update entity
         public void Update(University university)
         {
-            // ممكن تستخدم نفس الأسلوب بتاع الكليات
             _context.Universities.Update(university);
+        }
+
+        // Override to support multiple includes via string
+        public new async Task<IEnumerable<University>> GetAllAsync(string includeWord = null)
+        {
+            return await base.GetAllAsync(null, includeWord);
+        }
+
+        public new async Task<University?> GetFirstOrDefaultAsync(Expression<Func<University, bool>> filter, string includeWord = null)
+        {
+            return await base.GetFirstOrDefaultAsync(filter, includeWord);
         }
     }
 }
