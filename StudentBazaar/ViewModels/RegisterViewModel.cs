@@ -23,7 +23,7 @@ namespace StudentBazaar.Web.Models
 
         [Required]
         [Display(Name = "Register As")]
-        public string Role { get; set; } = "Buyer"; // Default to Buyer
+        public string Role { get; set; } = "Student"; // Default to Student
 
         [Required]
         public int UniversityId { get; set; }

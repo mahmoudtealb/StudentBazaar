@@ -70,8 +70,8 @@ namespace StudentBazaar.Web.Controllers
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
-                // Assign selected role (Admin, Buyer, or Seller)
-                var roleToAssign = model.Role ?? "Buyer"; // Default to Buyer if not specified
+                // Assign selected role (Student)
+                var roleToAssign = model.Role ?? "Student"; // Default to Student if not specified
                 await _userManager.AddToRoleAsync(user, roleToAssign);
 
                 // Sign in user

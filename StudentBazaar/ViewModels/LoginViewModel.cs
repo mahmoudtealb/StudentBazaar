@@ -14,6 +14,6 @@ namespace StudentBazaar.Web.Models.ViewModels
         public string Password { get; set; } = string.Empty;
 
         [Required]
-        public string Role { get; set; } = "Buyer"; // Default role
+        public string Role { get; set; } = "Student"; // Default role
     }
 }

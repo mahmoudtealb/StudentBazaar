@@ -29,26 +29,12 @@
                         <span asp-validation-for="Password" class="text-danger"></span>
                     </div>
 
-                    <!-- Roles -->
+                    <!-- Role -->
                     <div class="mb-3">
                         <label class="form-label">Login As</label>
-                        <div class="d-flex justify-content-between">
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" asp-for="Role" value="Seller" checked="@(@Model.Role == "Seller")">
-                                <label class="form-check-label">Seller</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" asp-for="Role" value="Buyer" checked="@(@Model.Role == "Buyer")">
-                                <label class="form-check-label">Buyer</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" asp-for="Role" value="Admin" checked="@(@Model.Role == "Admin")">
-                                <label class="form-check-label">Admin</label>
-                            </div>
-
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" asp-for="Role" value="Student" checked="@(@Model.Role == "Student" || string.IsNullOrEmpty(@Model.Role))">
+                            <label class="form-check-label">Student</label>
                         </div>
                     </div>
 
