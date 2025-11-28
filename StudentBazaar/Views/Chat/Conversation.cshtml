@@ -1,0 +1,192 @@
+﻿@model StudentBazaar.Web.ViewModels.ChatConversationViewModel
+
+@{
+    ViewData["Title"] = "المحادثة";
+}
+
+<div class="container mt-4">
+
+    <!-- عنوان الصفحة + مين مع مين -->
+    <div class="d-flex align-items-center mb-3">
+        <h3 class="me-2">💬 محادثة مع</h3>
+        <h3 class="text-primary">@Model.OtherUserName</h3>
+    </div>
+
+    <!-- معلومات البائع / المشتري -->
+    <div class="row mb-3">
+        <div class="col-md-6 text-start">
+            <div class="badge bg-secondary p-2">
+                👤 البائع: @Model.Product.Owner?.FullName
+            </div>
+        </div>
+        <div class="col-md-6 text-end">
+            <div class="badge bg-success p-2">
+                🙋 أنت (@(Model.IsSeller ? "البائع" : "المشتري"))
+            </div>
+        </div>
+    </div>
+
+    <!-- معلومات المنتج -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body d-flex align-items-center justify-content-between">
+            <div>
+                <strong>المنتج:</strong> @Model.Product.Name
+            </div>
+            <span class="badge bg-info text-dark">
+                @Model.Product.Price.ToString("0.00") ريال
+            </span>
+        </div>
+    </div>
+
+    <!-- صندوق الشات -->
+    <div id="chat-box"
+         class="border rounded p-3 mb-3"
+         style="height: 400px; overflow-y: auto; background: #fafafa;">
+
+        @if (Model.Messages != null && Model.Messages.Any())
+        {
+            foreach (var msg in Model.Messages)
+            {
+                bool isMine = msg.SenderId == Model.CurrentUserId;
+
+                <div class="d-flex mb-2 @(isMine ? "justify-content-end" : "justify-content-start")">
+                    <div class="p-2 rounded chat-bubble @(isMine ? "chat-me" : "chat-other")">
+                        <div>@msg.Content</div>
+                        <div class="text-muted small mt-1" style="font-size:11px;">
+                            @msg.SentAt.ToLocalTime().ToString("yyyy/MM/dd - hh:mm tt")
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center text-muted mt-5">
+                لا توجد رسائل بعد، ابدأ المحادثة الآن 👋
+            </div>
+        }
+    </div>
+
+    <!-- إرسال رسالة -->
+    <form id="chatForm" method="post">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" id="ProductId" value="@Model.ProductId" />
+        <input type="hidden" id="OtherUserId" value="@Model.OtherUserId" />
+        <input type="hidden" id="ConversationKey" value="@Model.ConversationKey" />
+        <input type="hidden" id="CurrentUserId" value="@Model.CurrentUserId" />
+
+        <div class="input-group">
+            <textarea id="NewMessage"
+                      name="NewMessage"
+                      class="form-control"
+                      placeholder="اكتب رسالتك..."
+                      rows="2"></textarea>
+
+            <button type="submit" class="btn btn-primary">
+                إرسال
+            </button>
+        </div>
+
+        <span class="text-danger" id="msgError"></span>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+    <style>
+        .chat-bubble {
+            max-width: 70%;
+            border: 1px solid #ddd;
+        }
+
+        .chat-me {
+            background: #d1ffd6;
+        }
+
+        .chat-other {
+            background: #e9ecef;
+        }
+    </style>
+
+    <script>
+        const chatBox = document.getElementById("chat-box");
+        const form = document.getElementById("chatForm");
+        const msgInput = document.getElementById("NewMessage");
+        const errSpan = document.getElementById("msgError");
+
+        const productId = parseInt(document.getElementById("ProductId").value);
+        const otherUserId = parseInt(document.getElementById("OtherUserId").value);
+        const currentUserId = parseInt(document.getElementById("CurrentUserId").value);
+        const convKey = document.getElementById("ConversationKey").value;
+
+        // ***** SignalR connection *****
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub")
+            .build();
+
+        connection.on("ReceiveMessage", function (msg) {
+            // لو الرسالة لنفس المنتج ونفس المحادثة
+            if (msg.productId !== productId) return;
+
+            const isMine = msg.senderId === currentUserId;
+
+            const wrapper = document.createElement("div");
+            wrapper.className = "d-flex mb-2 " + (isMine ? "justify-content-end" : "justify-content-start");
+
+            const bubble = document.createElement("div");
+            bubble.className = "p-2 rounded chat-bubble " + (isMine ? "chat-me" : "chat-other");
+
+            bubble.innerHTML =
+                `<div>${msg.content}</div>
+                 <div class="text-muted small mt-1" style="font-size:11px;">
+                     ${msg.sentAt}
+                 </div>`;
+
+            wrapper.appendChild(bubble);
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        connection.start().then(function () {
+            connection.invoke("JoinConversation", convKey);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+
+        // ***** AJAX Send *****
+        form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            errSpan.textContent = "";
+
+            const text = msgInput.value.trim();
+            if (!text) {
+                errSpan.textContent = "Message is required.";
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            fetch("@Url.Action("Send", "Chat")", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                    "RequestVerificationToken": token
+                },
+                body: new URLSearchParams({
+                    ProductId: productId,
+                    OtherUserId: otherUserId,
+                    NewMessage: text
+                })
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) {
+                        errSpan.textContent = data.error || "Error";
+                        return;
+                    }
+                    msgInput.value = "";
+                });
+        });
+    </script>
+}

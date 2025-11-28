@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using StudentBazaar.Web.Models;
+﻿
 using StudentBazaar.Web.Models.ViewModels;
 
 namespace StudentBazaar.Web.Controllers
@@ -13,9 +9,10 @@ namespace StudentBazaar.Web.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _context;
 
-        public AccountController(UserManager<ApplicationUser> userManager,
-                                 SignInManager<ApplicationUser> signInManager,
-                                 ApplicationDbContext context)
+        public AccountController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -23,7 +20,7 @@ namespace StudentBazaar.Web.Controllers
         }
 
         // ======================
-        // 🔹 Register (GET)
+        // Register (GET)
         // ======================
         [HttpGet]
         public async Task<IActionResult> Register()
@@ -31,15 +28,20 @@ namespace StudentBazaar.Web.Controllers
             var model = new RegisterViewModel
             {
                 Universities = await _context.Universities
-                                    .Select(u => new SelectListItem { Value = u.Id.ToString(), Text = u.UniversityName })
-                                    .ToListAsync(),
-                Colleges = new List<SelectListItem>() // Start empty, load by AJAX
+                    .Select(u => new SelectListItem
+                    {
+                        Value = u.Id.ToString(),
+                        Text = u.UniversityName
+                    })
+                    .ToListAsync(),
+                Colleges = new List<SelectListItem>()
             };
-            return View(model);
+
+            return View(model); // => Views/Account/Register.cshtml
         }
 
         // ======================
-        // 🔹 Register (POST)
+        // Register (POST)
         // ======================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -48,12 +50,22 @@ namespace StudentBazaar.Web.Controllers
             if (!ModelState.IsValid)
             {
                 model.Universities = await _context.Universities
-                    .Select(u => new SelectListItem { Value = u.Id.ToString(), Text = u.UniversityName })
+                    .Select(u => new SelectListItem
+                    {
+                        Value = u.Id.ToString(),
+                        Text = u.UniversityName
+                    })
                     .ToListAsync();
+
                 model.Colleges = await _context.Colleges
                     .Where(c => c.UniversityId == model.UniversityId)
-                    .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.CollegeName })
+                    .Select(c => new SelectListItem
+                    {
+                        Value = c.Id.ToString(),
+                        Text = c.CollegeName
+                    })
                     .ToListAsync();
+
                 return View(model);
             }
 
@@ -68,80 +80,83 @@ namespace StudentBazaar.Web.Controllers
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
+
             if (result.Succeeded)
             {
-                // Assign selected role (Student)
-                var roleToAssign = model.Role ?? "Student"; // Default to Student if not specified
-                await _userManager.AddToRoleAsync(user, roleToAssign);
+                // أي حد بيسجل من الـ UI العام يبقى Student بس
+                await _userManager.AddToRoleAsync(user, "Student");
 
-                // Sign in user
                 await _signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Product");
             }
 
             foreach (var error in result.Errors)
-                ModelState.AddModelError("", error.Description);
+                ModelState.AddModelError(string.Empty, error.Description);
 
+            // إعادة تحميل الـ dropdowns
             model.Universities = await _context.Universities
-                .Select(u => new SelectListItem { Value = u.Id.ToString(), Text = u.UniversityName })
+                .Select(u => new SelectListItem
+                {
+                    Value = u.Id.ToString(),
+                    Text = u.UniversityName
+                })
                 .ToListAsync();
 
             model.Colleges = await _context.Colleges
                 .Where(c => c.UniversityId == model.UniversityId)
-                .Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.CollegeName })
+                .Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.CollegeName
+                })
                 .ToListAsync();
 
             return View(model);
         }
 
         // ======================
-        // 🔹 Login (GET)
+        // Login (GET)
         // ======================
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
             return View(new LoginViewModel());
         }
 
         // ======================
-        // 🔹 Login (POST)
+        // Login (POST)
         // ======================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
+
             if (!ModelState.IsValid)
                 return View(model);
 
-            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: false, lockoutOnFailure: false);
+            var result = await _signInManager.PasswordSignInAsync(
+                model.Email,
+                model.Password,
+                isPersistent: false,
+                lockoutOnFailure: false);
+
             if (result.Succeeded)
             {
-                // Get the logged-in user
-                var user = await _userManager.FindByEmailAsync(model.Email);
-                if (user != null)
-                {
-                    // Get user's roles
-                    var userRoles = await _userManager.GetRolesAsync(user);
-                    
-                    // Validate that user has the selected role
-                    if (!string.IsNullOrEmpty(model.Role) && !userRoles.Contains(model.Role))
-                    {
-                        await _signInManager.SignOutAsync();
-                        ModelState.AddModelError("", $"You are not registered as a {model.Role}. Please select the correct role or register with that role.");
-                        return View(model);
-                    }
-                }
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                    return LocalRedirect(returnUrl);
 
-                // Redirect to Product page as required
-                return !string.IsNullOrEmpty(returnUrl) ? LocalRedirect(returnUrl) : RedirectToAction("Index", "Product");
+                // مؤقتًا كله يروح على المنتجات
+                return RedirectToAction("Index", "Product");
             }
 
-            ModelState.AddModelError("", "Invalid login attempt");
+            ModelState.AddModelError(string.Empty, "Invalid login attempt");
             return View(model);
         }
 
         // ======================
-        // 🔹 Logout
+        // Logout
         // ======================
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -152,7 +167,7 @@ namespace StudentBazaar.Web.Controllers
         }
 
         // ======================
-        // 🔹 Get Colleges by University (AJAX)
+        // Get Colleges (AJAX)
         // ======================
         [HttpGet]
         public async Task<JsonResult> GetColleges(int universityId)

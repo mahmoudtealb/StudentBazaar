@@ -30,6 +30,7 @@ namespace StudentBazaar.Web.Data
         // E-commerce flow
         public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; } // إضافة: سلة التسوق
                                                                        // This section defines the Fluent API configuration 
+        public DbSet<ChatMessage> ChatMessages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -189,6 +190,21 @@ namespace StudentBazaar.Web.Data
             modelBuilder.Entity<College>()
                 .HasIndex(c => new { c.CollegeName, c.UniversityId })
                 .IsUnique();
+
+            // علاقة الرسائل المرسلة
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.Sender)
+                .WithMany(u => u.MessagesSent)
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // علاقة الرسائل المستلمة
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(m => m.Receiver)
+                .WithMany(u => u.MessagesReceived)
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
 
         internal void UpdateCategoryAttribute(CategoryAttribute categoryAttribute)

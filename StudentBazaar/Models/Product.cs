@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+
 
 namespace StudentBazaar.Web.Models
 {
@@ -20,6 +19,10 @@ namespace StudentBazaar.Web.Models
         [Column(TypeName = "decimal(18, 2)")]
         [Range(0.01, 999999.99, ErrorMessage = "Price must be between 0.01 and 999999.99")]
         public decimal Price { get; set; }
+
+        public int? OwnerId { get; set; }
+
+        public ApplicationUser? Owner { get; set; }
 
         [ForeignKey(nameof(CategoryId))]
         public ProductCategory? Category { get; set; } 

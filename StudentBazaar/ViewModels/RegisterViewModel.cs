@@ -1,4 +1,5 @@
-﻿
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace StudentBazaar.Web.Models
 {
@@ -21,9 +22,8 @@ namespace StudentBazaar.Web.Models
         [Compare("Password", ErrorMessage = "Passwords do not match.")]
         public string ConfirmPassword { get; set; } = string.Empty;
 
-        [Required]
-        [Display(Name = "Register As")]
-        public string Role { get; set; } = "Student"; // Default to Student
+        // Role is hidden and always Student
+        public string Role { get; set; } = "Student";
 
         [Required]
         public int UniversityId { get; set; }
@@ -33,7 +33,7 @@ namespace StudentBazaar.Web.Models
 
         public string Address { get; set; } = string.Empty;
 
-        // Dropdowns
+        // Dropdown lists
         public IEnumerable<SelectListItem> Universities { get; set; } = new List<SelectListItem>();
         public IEnumerable<SelectListItem> Colleges { get; set; } = new List<SelectListItem>();
     }

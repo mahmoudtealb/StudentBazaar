@@ -1,108 +1,210 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using StudentBazaar.Web.Models;
+using StudentBazaar.Web.Repositories;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace StudentBazaar.Web.Controllers
 {
+    [Authorize]
     public class ListingController : Controller
     {
-        private readonly IGenericRepository<Listing> _repo;
+        private readonly IGenericRepository<Listing> _listingRepo;
+        private readonly IGenericRepository<Product> _productRepo;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ListingController(IGenericRepository<Listing> repo)
+        public ListingController(
+            IGenericRepository<Listing> listingRepo,
+            IGenericRepository<Product> productRepo,
+            UserManager<ApplicationUser> userManager)
         {
-            _repo = repo;
+            _listingRepo = listingRepo;
+            _productRepo = productRepo;
+            _userManager = userManager;
         }
 
-        // GET: Listing
+        private int GetCurrentUserId()
+        {
+            var idStr = _userManager.GetUserId(User);
+            return int.Parse(idStr!);
+        }
+
+        private bool CanManage(Listing listing)
+        {
+            if (User.IsInRole("Admin")) return true;
+            if (!User.Identity!.IsAuthenticated) return false;
+            return listing.SellerId == GetCurrentUserId();
+        }
+
+        // =======================
+        // INDEX
+        // =======================
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            var listings = await _repo.GetAllAsync(includeWord: "Product,Seller,Orders,ShoppingCartItems");
+            var listings = await _listingRepo.GetAllAsync(
+                includeWord: "Product,Seller");
+
             return View(listings);
         }
 
-        // GET: Listing/Details/5
+        // =======================
+        // DETAILS
+        // =======================
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
-            var entity = await _repo.GetFirstOrDefaultAsync(l => l.Id == id, includeWord: "Product,Seller,Orders,ShoppingCartItems");
-            if (entity == null)
+            var listing = await _listingRepo.GetFirstOrDefaultAsync(
+                l => l.Id == id,
+                includeWord: "Product,Seller");
+
+            if (listing == null)
                 return NotFound();
 
-            return View(entity);
+            return View(listing);
         }
 
-        // GET: Listing/Create
-        public IActionResult Create()
+        // =======================
+        // CREATE (GET)
+        // =======================
+        public async Task<IActionResult> Create()
         {
-            return View();
+            await FillProductsDropDown();
+            return View(new Listing());
         }
 
-        // POST: Listing/Create
+        // =======================
+        // CREATE (POST)
+        // =======================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Listing entity)
         {
             if (!ModelState.IsValid)
+            {
+                await FillProductsDropDown();
                 return View(entity);
+            }
 
-            await _repo.AddAsync(entity);
-            await _repo.SaveAsync();
+            entity.SellerId = GetCurrentUserId();
+            entity.PostingDate = DateTime.UtcNow;
+
+            await _listingRepo.AddAsync(entity);
+            await _listingRepo.SaveAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Listing/Edit/5
+        // =======================
+        // EDIT (GET)
+        // =======================
         public async Task<IActionResult> Edit(int id)
         {
-            var existing = await _repo.GetFirstOrDefaultAsync(l => l.Id == id);
-            if (existing == null)
+            var listing = await _listingRepo.GetFirstOrDefaultAsync(
+                l => l.Id == id);
+
+            if (listing == null)
                 return NotFound();
 
-            return View(existing);
+            if (!CanManage(listing))
+                return Forbid();
+
+            await FillProductsDropDown(listing.ProductId);
+
+            return View(listing);
         }
 
-        // POST: Listing/Edit/5
+        // =======================
+        // EDIT (POST)
+        // =======================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, Listing entity)
         {
             if (!ModelState.IsValid)
+            {
+                await FillProductsDropDown(entity.ProductId);
                 return View(entity);
+            }
 
-            var existing = await _repo.GetFirstOrDefaultAsync(l => l.Id == id);
+            var existing = await _listingRepo.GetFirstOrDefaultAsync(
+                l => l.Id == id);
+
             if (existing == null)
                 return NotFound();
+
+            if (!CanManage(existing))
+                return Forbid();
 
             existing.Price = entity.Price;
             existing.Condition = entity.Condition;
             existing.Description = entity.Description;
             existing.Discount = entity.Discount;
             existing.Status = entity.Status;
-            existing.PostingDate = entity.PostingDate;
             existing.ProductId = entity.ProductId;
-            existing.SellerId = entity.SellerId;
-            existing.UpdatedAt = DateTime.Now;
+            existing.UpdatedAt = DateTime.UtcNow;
 
-            await _repo.SaveAsync();
+            await _listingRepo.SaveAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Listing/Delete/5
+        // =======================
+        // DELETE (GET)
+        // =======================
         public async Task<IActionResult> Delete(int id)
         {
-            var entity = await _repo.GetFirstOrDefaultAsync(l => l.Id == id);
-            if (entity == null)
+            var listing = await _listingRepo.GetFirstOrDefaultAsync(
+                l => l.Id == id,
+                includeWord: "Product,Seller");
+
+            if (listing == null)
                 return NotFound();
 
-            return View(entity);
+            if (!CanManage(listing))
+                return Forbid();
+
+            return View(listing);
         }
 
-        // POST: Listing/Delete/5
+        // =======================
+        // DELETE (POST)
+        // =======================
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var entity = await _repo.GetFirstOrDefaultAsync(l => l.Id == id);
-            if (entity == null)
+            var listing = await _listingRepo.GetFirstOrDefaultAsync(l => l.Id == id);
+
+            if (listing == null)
                 return NotFound();
 
-            _repo.Remove(entity);
-            await _repo.SaveAsync();
+            if (!CanManage(listing))
+                return Forbid();
+
+            _listingRepo.Remove(listing);
+            await _listingRepo.SaveAsync();
+
             return RedirectToAction(nameof(Index));
+        }
+
+        // =======================
+        // Helper: Products Dropdown
+        // =======================
+        private async Task FillProductsDropDown(int? selectedId = null)
+        {
+            var products = await _productRepo.GetAllAsync();
+
+            ViewBag.ProductList = products.Select(p => new SelectListItem
+            {
+                Text = p.Name,
+                Value = p.Id.ToString(),
+                Selected = (selectedId.HasValue && selectedId.Value == p.Id)
+            }).ToList();
         }
     }
 }

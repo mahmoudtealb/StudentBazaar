@@ -25,8 +25,8 @@ namespace StudentBazaar.Web.Models
         [Required]
         public ListingStatus Status { get; set; } = ListingStatus.Available;
 
-        [Required]
-        public DateTime PostingDate { get; set; } = DateTime.Now;
+        
+        public DateTime PostingDate { get; set; } 
 
         // ==========================
         // 🔗 Foreign Keys
