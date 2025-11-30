@@ -45,16 +45,17 @@
 
                     <!-- University -->
                     <div class="mb-3">
-                        <label asp-for="UniversityId" class="form-label"></label>
+                        <label for="UniversityId" class="form-label">University Name</label>
                         <select asp-for="UniversityId" asp-items="Model.Universities" class="form-select" id="UniversitySelect">
                             <option value="">-- Select University --</option>
                         </select>
-                        <span asp-validation-for="UniversityId" class="text-danger"></span>
+                        <span asp-validation-for="UniversityId" class="text-danger text-capitalize"></span>
                     </div>
+
 
                     <!-- College -->
                     <div class="mb-3">
-                        <label asp-for="CollegeId" class="form-label"></label>
+                        <label for="CollegeId" class="form-label">College Name</label>
                         <select asp-for="CollegeId" asp-items="Model.Colleges" class="form-select" id="CollegeSelect">
                             <option value="">-- Select College --</option>
                         </select>

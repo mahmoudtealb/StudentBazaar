@@ -1,6 +1,6 @@
 ﻿namespace StudentBazaar.Web.Models;
 
-public class ShoppingCartItem:BaseEntity
+public class ShoppingCartItem : BaseEntity
 {
     // ==========================
     // 🔗 Foreign Keys

@@ -13,6 +13,8 @@ global using StudentBazaar.Web.implementation;
 global using Microsoft.AspNetCore.Mvc.Rendering;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.AspNetCore.Authorization;
+global using Newtonsoft.Json;
+
 
 
 

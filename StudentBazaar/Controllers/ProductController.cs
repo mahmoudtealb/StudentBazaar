@@ -1,4 +1,4 @@
-﻿using StudentBazaar.Web.ViewModels;
+using StudentBazaar.Web.ViewModels;
 
 namespace StudentBazaar.Web.Controllers
 {
@@ -7,6 +7,7 @@ namespace StudentBazaar.Web.Controllers
         private readonly IGenericRepository<Product> _repo;
         private readonly IGenericRepository<ProductCategory> _categoryRepo;
         private readonly IGenericRepository<ProductImage> _imageRepo;
+        private readonly IGenericRepository<College> _collegeRepo;
         private readonly IWebHostEnvironment _env;
         private readonly UserManager<ApplicationUser> _userManager;
 
@@ -14,6 +15,7 @@ namespace StudentBazaar.Web.Controllers
             IGenericRepository<Product> repo,
             IGenericRepository<ProductCategory> categoryRepo,
             IGenericRepository<ProductImage> imageRepo,
+            IGenericRepository<College> collegeRepo,
             IWebHostEnvironment env,
             UserManager<ApplicationUser> userManager
         )
@@ -21,6 +23,7 @@ namespace StudentBazaar.Web.Controllers
             _repo = repo;
             _categoryRepo = categoryRepo;
             _imageRepo = imageRepo;
+            _collegeRepo = collegeRepo;
             _env = env;
             _userManager = userManager;
         }
@@ -52,13 +55,36 @@ namespace StudentBazaar.Web.Controllers
         // ============================
 
         [AllowAnonymous]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? q = null, int? collegeId = null)
         {
             var products = await _repo.GetAllAsync(
-                includeWord: "Category,Images,Listings,Ratings"
+                includeWord: "Category,Images,Listings,Ratings,Owner"
             );
 
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var qLower = q.Trim();
+                products = products.Where(p =>
+                    p.Name.Contains(qLower, StringComparison.OrdinalIgnoreCase) ||
+                    (p.Owner != null && p.Owner.College != null && p.Owner.College.CollegeName.Contains(qLower, StringComparison.OrdinalIgnoreCase))
+                );
+            }
+
+            if (collegeId.HasValue)
+                products = products.Where(p => p.Owner != null && p.Owner.CollegeId == collegeId.Value);
+
+            var colleges = await _collegeRepo.GetAllAsync();
+            ViewBag.Colleges = colleges;
+            ViewBag.CurrentQuery = q;
+            ViewBag.CurrentCollegeId = collegeId;
+
             return View(products);
+        }
+
+        [HttpGet]
+        public Task<IActionResult> Search(string? q = null, int? collegeId = null)
+        {
+            return Index(q, collegeId);
         }
 
         [AllowAnonymous]

@@ -21,6 +21,18 @@ body {
   margin-bottom: 60px;
 }
 
+.btn-primary {
+  border-radius: 10px;
+}
+
+.container {
+  max-width: 1140px;
+}
+
+.navbar {
+  backdrop-filter: saturate(180%) blur(6px);
+}
+
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
   color: var(--bs-secondary-color);
   text-align: end;
@@ -35,5 +47,5 @@ body {
     background: #fafafa;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end; /* åäÇ Çááí íÎáí ÇáÑÓÇÆá ÊäÒá ÊÍÊ */
+    justify-content: flex-end; /* ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ */
 }

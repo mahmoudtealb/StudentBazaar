@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using StudentBazaar.Web.Models;
+using StudentBazaar.Web.Repositories;
+using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace StudentBazaar.Web.Controllers
 {
@@ -9,30 +12,46 @@ namespace StudentBazaar.Web.Controllers
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<CheckoutController> _logger;
+        private readonly IShoppingCartItemRepository _cartRepo;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public CheckoutController(IConfiguration configuration, ILogger<CheckoutController> logger)
+        public CheckoutController(IConfiguration configuration, ILogger<CheckoutController> logger, IShoppingCartItemRepository cartRepo, UserManager<ApplicationUser> userManager)
         {
             _configuration = configuration;
             _logger = logger;
+            _cartRepo = cartRepo;
+            _userManager = userManager;
         }
 
         // GET: Checkout page
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            // مثال بيانات وهمية للسلة، لاحقًا ممكن تجي من قاعدة البيانات
-            var cartItems = new List<CartItemViewModel>
+            var userIdStr = _userManager.GetUserId(User);
+            var userId = int.Parse(userIdStr!);
+
+            var items = await _cartRepo.GetAllAsync(c => c.UserId == userId, includeWord: "Listing,Listing.Product,Listing.Product.Images,Listing.Product.Category");
+
+            var cartItems = items.Select(i => new CartItemViewModel
             {
-                new CartItemViewModel { ProductId = 1, ProductName = "Notebook", Quantity = 2, Price = 5 },
-                new CartItemViewModel { ProductId = 2, ProductName = "Pen Set", Quantity = 1, Price = 10 }
-            };
+                ProductId = i.Listing.ProductId,
+                ProductName = i.Listing.Product.Name,
+                CategoryName = i.Listing.Product.Category?.CategoryName ?? string.Empty,
+                Price = i.Listing.Price,
+                Quantity = i.Quantity,
+                ImageUrl = (i.Listing.Product.Images != null && i.Listing.Product.Images.Any())
+                    ? (i.Listing.Product.Images.FirstOrDefault(img => img.IsMainImage)?.ImageUrl ?? i.Listing.Product.Images.First().ImageUrl)
+                    : string.Empty
+            }).ToList();
 
             var subtotal = cartItems.Sum(x => x.Price * x.Quantity);
             var model = new CheckoutViewModel
             {
                 CartItems = cartItems,
                 Subtotal = subtotal,
-                Total = subtotal // هنا ممكن تضيف ضريبة أو شحن
+                Shipping = 0,
+                Tax = 0,
+                Total = subtotal
             };
 
             // Check if Stripe is configured

@@ -1,0 +1,170 @@
+﻿@model StudentBazaar.Web.ViewModels.ProductCreateViewModel
+@{
+    ViewData["Title"] = "Edit Product";
+}
+
+<h2 class="mt-3">Edit Product</h2>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data" novalidate>
+    <input type="hidden" asp-for="Product.Id" />
+
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="mb-3">
+                <label asp-for="Product.Name" class="form-label">Product Name *</label>
+                <input asp-for="Product.Name" class="form-control" />
+                <span asp-validation-for="Product.Name" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Product.CategoryId" class="form-label">Category *</label>
+                <select asp-for="Product.CategoryId" class="form-select" asp-items="Model.Categories">
+                    <option value="">-- Select Category --</option>
+                </select>
+                <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Product.Price" class="form-label">Price *</label>
+                <input asp-for="Product.Price" type="number" step="0.01" min="0.01" class="form-control" />
+                <span asp-validation-for="Product.Price" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Files" class="form-label">Upload New Images (Optional)</label>
+                <input asp-for="Files" type="file" multiple accept="image/*" class="form-control" id="editImageInput" />
+                <small class="form-text text-muted">You can select multiple images. Accepted formats: JPG, PNG, GIF, WEBP</small>
+                <span asp-validation-for="Files" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <button type="submit" class="btn btn-warning">Update Product</button>
+                <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header"><strong>Existing Images</strong></div>
+                <div class="card-body">
+                    @if (Model.Product.Images != null && Model.Product.Images.Any())
+                    {
+                        <div class="row g-2">
+                            @foreach (var img in Model.Product.Images)
+                            {
+                                <div class="col-6 text-center" id="img-wrap-@img.Id">
+                                    <img src="@img.ImageUrl" class="img-thumbnail w-100" style="height:120px; object-fit:cover" />
+                                    <div class="mt-1">
+                                        @if (img.IsMainImage)
+                                        {
+                                            <span class="badge bg-success">Main</span>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-primary set-main-btn" data-id="@img.Id">Set Main</button>
+                                        }
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-image-btn" data-id="@img.Id">Delete</button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No images yet.</p>
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><strong>New Image Preview</strong></div>
+                <div class="card-body">
+                    <div id="editImagePreview" class="d-flex flex-wrap gap-2">
+                        <p class="text-muted small">Selected images will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const editInput = document.getElementById('editImageInput');
+            const preview = document.getElementById('editImagePreview');
+
+            if (editInput && preview) {
+                editInput.addEventListener('change', function (e) {
+                    preview.innerHTML = '';
+                    const files = e.target.files;
+                    if (!files || files.length === 0) {
+                        preview.innerHTML = '<p class="text-muted small">Selected images will appear here</p>';
+                        return;
+                    }
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        if (file && file.type && file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function (event) {
+                                const img = document.createElement('img');
+                                img.src = event.target.result;
+                                img.className = 'img-thumbnail';
+                                img.style.width = '100px';
+                                img.style.height = '100px';
+                                img.style.objectFit = 'cover';
+                                img.style.margin = '5px';
+                                preview.appendChild(img);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    }
+                });
+            }
+
+            // AJAX delete image
+            document.querySelectorAll('.delete-image-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    if (!confirm('Delete this image?')) return;
+                    const res = await fetch('@Url.Action("DeleteImage", "Product")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        body: JSON.stringify({ imageId: parseInt(id) })
+                    });
+                    if (res.ok) {
+                        document.getElementById('img-wrap-' + id).remove();
+                    } else {
+                        alert('Failed to delete image.');
+                    }
+                });
+            });
+
+            // AJAX set main
+            document.querySelectorAll('.set-main-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    const res = await fetch('@Url.Action("SetMainImage", "Product")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        body: JSON.stringify({ imageId: parseInt(id) })
+                    });
+                    if (res.ok) {
+                        location.reload();
+                    } else {
+                        alert('Failed to set main image.');
+                    }
+                });
+            });
+        });
+    </script>
+}

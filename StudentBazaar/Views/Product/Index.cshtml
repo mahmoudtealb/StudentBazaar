@@ -1,26 +1,25 @@
-﻿@model IEnumerable<StudentBazaar.Web.Models.Product>
+@model IEnumerable<StudentBazaar.Web.Models.Product>
 
 @{
     ViewData["Title"] = "Shop Products";
 }
 
-<div class="container py-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1">Shop Products</h2>
-            <p class="text-muted mb-0">
-                تصفّح أدوات و مستلزمات الطلاب المستعملة و الجديدة.
-            </p>
+<div class="page-header">
+    <div class="container">
+        <div class="header-content">
+            <div class="titles">
+                <h1>Shop Products</h1>
+                <p>تصفح واشتري المستعمل والجديد بسهولة</p>
+            </div>
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <a asp-action="Create" class="btn btn-primary">+ Sell an Item</a>
+            }
         </div>
-
-        @if (User.Identity?.IsAuthenticated ?? false)
-        {
-            <a asp-action="Create" class="btn btn-success">
-                + Sell an Item
-            </a>
-        }
     </div>
+</div>
+
+<div class="container py-4">
 
     @if (!Model.Any())
     {
@@ -41,6 +40,31 @@
     }
     else
     {
+        <form asp-action="Index" method="get" class="filter-bar">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="q" value="@ViewBag.CurrentQuery" class="form-control" placeholder="Product or College" />
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">College</label>
+                    <select name="collegeId" class="form-select">
+                        <option value="">All Colleges</option>
+                        @if (ViewBag.Colleges != null)
+                        {
+                            foreach (var c in (IEnumerable<StudentBazaar.Web.Models.College>)ViewBag.Colleges)
+                            {
+                                var selected = (ViewBag.CurrentCollegeId != null && (int)ViewBag.CurrentCollegeId == c.Id) ? "selected" : "";
+                                <option value="@c.Id" selected="@selected">@c.CollegeName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </div>
+        </form>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
 
             @foreach (var item in Model)
@@ -55,7 +79,7 @@
                 item.OwnerId.Value.ToString() == currentUserId);
 
                 <div class="col">
-                    <div class="card h-100 border-0 shadow-sm product-card">
+                        <div class="card h-100 border-0 shadow-sm product-card">
 
                         <a asp-action="Details" asp-route-id="@item.Id"
                            class="text-decoration-none text-dark">
@@ -107,12 +131,19 @@
                             }
                             else if (User.Identity?.IsAuthenticated ?? false)
                             {
-                                <a asp-controller="Chat"
-                                   asp-action="WithSeller"
-                                   asp-route-productId="@item.Id"
-                                   class="btn btn-sm btn-warning">
-                                    🛍 Buy / Contact
-                                </a>
+                                <div class="btn-group btn-group-sm">
+                                    <a asp-controller="Chat"
+                                       asp-action="WithSeller"
+                                       asp-route-productId="@item.Id"
+                                       class="btn btn-warning">
+                                        🛍 Contact
+                                    </a>
+                                    <form asp-controller="Cart" asp-action="AddProductToCart" method="post" class="d-inline">
+                                        <input type="hidden" name="productId" value="@item.Id" />
+                                        <input type="hidden" name="quantity" value="1" />
+                                        <button type="submit" class="btn btn-success">Add to Cart</button>
+                                    </form>
+                                </div>
                             }
                             else
                             {
@@ -133,15 +164,12 @@
 
 @section Scripts {
     <style>
-        .product-card {
-            border-radius: 18px;
-            overflow: hidden;
-            transition: transform .15s ease, box-shadow .15s ease;
-        }
-
-            .product-card:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 12px 25px rgba(0,0,0,0.08);
-            }
+        .page-header {background: linear-gradient(135deg,#eef2f7 0%,#e6ecfb 100%);padding: 32px 0;border-bottom: 1px solid #e5e5e5}
+        .header-content {display:flex;justify-content:space-between;align-items:center}
+        .header-content h1 {margin:0;font-weight:700}
+        .header-content p {margin:6px 0 0;color:#6c757d}
+        .filter-bar {background:#fff;border:1px solid #e5e5e5;border-radius:12px;padding:16px;margin-bottom:16px}
+        .product-card {border-radius:16px;overflow:hidden;transition:transform .15s ease,box-shadow .15s ease}
+        .product-card:hover {transform:translateY(-3px);box-shadow:0 12px 25px rgba(0,0,0,0.08)}
     </style>
 }

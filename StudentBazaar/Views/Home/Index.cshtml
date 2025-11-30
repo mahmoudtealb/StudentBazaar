@@ -1,4 +1,4 @@
-﻿@using StudentBazaar.Web.Models
+@using StudentBazaar.Web.Models
 @using System.Linq
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -37,7 +37,7 @@
         <div class="menu-bar">
             <ul>
                 <li>
-                    <a asp-controller="ShoppingCart" asp-action="Index">
+                    <a asp-controller="Cart" asp-action="Index">
                         <i class="fa-solid fa-cart-shopping"></i> Cart
                     </a>
                 </li>
@@ -163,6 +163,32 @@
                 <h2>On Sale / Latest Products</h2>
             </div>
 
+            <form asp-action="Index" method="get" class="mb-3">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label">Search Product</label>
+                        <input type="text" name="q" value="@ViewBag.CurrentQuery" class="form-control" placeholder="Enter product name" />
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">College</label>
+                        <select name="collegeId" class="form-select">
+                            <option value="">All Colleges</option>
+                            @if (ViewBag.Colleges != null)
+                            {
+                                foreach (var c in (IEnumerable<StudentBazaar.Web.Models.College>)ViewBag.Colleges)
+                                {
+                                    var selected = (ViewBag.CurrentCollegeId != null && (int)ViewBag.CurrentCollegeId == c.Id) ? "selected" : "";
+                                    <option value="@c.Id" selected="@selected">@c.CollegeName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                    </div>
+                </div>
+            </form>
+
             @if (!Model.Any())
             {
                 <div class="alert alert-info">
@@ -216,9 +242,13 @@
                                         <button type="button" class="btn btn-secondary" title="Wishlist">
                                             <i class="fa-solid fa-heart"></i>
                                         </button>
-                                        <button type="button" class="btn btn-secondary" title="Buy">
-                                            <i class="fa-solid fa-cart-shopping"></i>
-                                        </button>
+                                        <form asp-controller="Cart" asp-action="AddProductToCart" method="post" class="d-inline">
+                                            <input type="hidden" name="productId" value="@item.Id" />
+                                            <input type="hidden" name="quantity" value="1" />
+                                            <button type="submit" class="btn btn-secondary" title="Add to Cart">
+                                                <i class="fa-solid fa-cart-shopping"></i>
+                                            </button>
+                                        </form>
                                     }
                                     else
                                     {

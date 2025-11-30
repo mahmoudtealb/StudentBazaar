@@ -1,0 +1,147 @@
+﻿@model IEnumerable<StudentBazaar.Web.Models.Product>
+
+@{
+    ViewData["Title"] = "Shop Products";
+}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Shop Products</h2>
+            <p class="text-muted mb-0">
+                تصفّح أدوات و مستلزمات الطلاب المستعملة و الجديدة.
+            </p>
+        </div>
+
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <a asp-action="Create" class="btn btn-success">
+                + Sell an Item
+            </a>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center">
+            لا توجد منتجات حالياً.
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <span>ابدأ و <a asp-action="Create">أضف أول منتج</a> 🎯</span>
+            }
+            else
+            {
+                <span>
+                    سجّل دخولك عشان تقدر تعرض منتجاتك أو تشتري.
+                    <a asp-controller="Account" asp-action="Login">Login</a>
+                </span>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+
+            @foreach (var item in Model)
+            {
+                var mainImage = item.Images?.FirstOrDefault(img => img.IsMainImage)
+                ?? item.Images?.FirstOrDefault();
+
+                var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                bool canManage = User.IsInRole("Admin") ||
+                (currentUserId != null &&
+                item.OwnerId.HasValue &&
+                item.OwnerId.Value.ToString() == currentUserId);
+
+                <div class="col">
+                    <div class="card h-100 border-0 shadow-sm product-card">
+
+                        <a asp-action="Details" asp-route-id="@item.Id"
+                           class="text-decoration-none text-dark">
+                            <div class="ratio ratio-4x3">
+                                @if (mainImage != null)
+                                {
+                                    <img src="@mainImage.ImageUrl"
+                                         class="card-img-top img-fluid"
+                                         style="object-fit: cover;"
+                                         alt="@item.Name"
+                                         onerror="this.src='/images/placeholder.png'; this.onerror=null;" />
+                                }
+                                else
+                                {
+                                    <div class="d-flex justify-content-center align-items-center bg-light">
+                                        <span class="text-muted">No image</span>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="card-body">
+                                <h5 class="card-title mb-1 fw-semibold">@item.Name</h5>
+                                <p class="text-muted mb-1">
+                                    @item.Category?.CategoryName
+                                </p>
+                                <p class="mb-0 fw-bold text-success">
+                                    @item.Price.ToString("C")
+                                </p>
+                            </div>
+                        </a>
+
+                        <!-- ========================= -->
+                        <!--        ACTION BUTTONS     -->
+                        <!-- ========================= -->
+
+                        <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center pt-0 pb-3 px-3">
+                            <a asp-action="Details"
+                               asp-route-id="@item.Id"
+                               class="btn btn-outline-secondary btn-sm">
+                                View
+                            </a>
+
+                            @if (canManage)
+                            {
+                                <div class="btn-group btn-group-sm">
+                                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-outline-warning">Edit</a>
+                                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger">Delete</a>
+                                </div>
+                            }
+                            else if (User.Identity?.IsAuthenticated ?? false)
+                            {
+                                <a asp-controller="Chat"
+                                   asp-action="WithSeller"
+                                   asp-route-productId="@item.Id"
+                                   class="btn btn-sm btn-warning">
+                                    🛍 Buy / Contact
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login"
+                                   class="btn btn-sm btn-outline-primary">
+                                    Login to buy
+                                </a>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <style>
+        .product-card {
+            border-radius: 18px;
+            overflow: hidden;
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+            .product-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+            }
+    </style>
+}

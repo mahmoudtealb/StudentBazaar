@@ -1,0 +1,309 @@
+﻿@using StudentBazaar.Web.Models
+@inject Microsoft.AspNetCore.Identity.UserManager<ApplicationUser> UserManager
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - StudentBazaar</title>
+
+    <link href="~/css/bootstrap.min (3).css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/StudentBazaar.styles.css" asp-append-version="true" />
+</head>
+<body>
+    @{
+        // --------- معلومات عن اليوزر الحالي ----------
+        bool isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+        ApplicationUser? currentUser = null;
+        bool isAdmin = false;
+
+        if (isAuthenticated)
+        {
+            currentUser = await UserManager.GetUserAsync(User);
+            if (currentUser != null)
+            {
+                isAdmin = await UserManager.IsInRoleAsync(currentUser, "Admin");
+            }
+        }
+
+        string currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+        // 👇 اسم يتعرض في الـNavbar (ممكن نغيّره من أي View عن طريق ViewData["NavDisplayName"])
+        string? overrideName = ViewData["NavDisplayName"] as string;
+        string displayName = overrideName ?? (currentUser?.FullName ?? User.Identity?.Name ?? "User");
+    }
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+
+                <!-- Logo -->
+                <a class="navbar-brand fw-bold" asp-area="" asp-controller="Product" asp-action="Index">
+                    StudentBazaar
+                </a>
+
+                <!-- Search Box -->
+                <form class="d-none d-md-flex ms-3 flex-grow-1" asp-controller="Product" asp-action="Search" method="get">
+                    <input type="text" name="q" class="form-control" placeholder="Search products..." />
+                </form>
+
+                <!-- Toggle -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+
+                <div class="collapse navbar-collapse" id="mainNavbar">
+
+                    <!-- LEFT LINKS -->
+                    <ul class="navbar-nav me-auto">
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark @(currentController == "Product" ? "active fw-bold" : "")"
+                               asp-controller="Product" asp-action="Index">Shop</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark @(currentController == "Home" && currentAction == "Index" ? "active fw-bold" : "")"
+                               asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+
+                        <!-- Mega Menu -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" data-bs-toggle="dropdown">Categories</a>
+                            <ul class="dropdown-menu p-3" style="width: 350px;">
+                                <li><a class="dropdown-item" asp-controller="Product" asp-action="ByCategory" asp-route-id="1">Electronics</a></li>
+                                <li><a class="dropdown-item" asp-controller="Product" asp-action="ByCategory" asp-route-id="2">Books</a></li>
+                                <li><a class="dropdown-item" asp-controller="Product" asp-action="ByCategory" asp-route-id="3">Clothes</a></li>
+                                <li><a class="dropdown-item" asp-controller="Product" asp-action="ByCategory" asp-route-id="4">Furniture</a></li>
+                            </ul>
+                        </li>
+
+                    </ul>
+
+
+                    <!-- RIGHT SIDE -->
+                    <ul class="navbar-nav align-items-center">
+
+                        @if (isAuthenticated)
+                        {
+                            <!-- Notifications -->
+                            <li class="nav-item dropdown me-3">
+                                <a class="nav-link position-relative" data-bs-toggle="dropdown">
+                                    🔔
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end p-2" style="width:300px;">
+                                    <li><strong class="dropdown-header">Notifications</strong></li>
+                                    <li><hr /></li>
+                                    <li><a class="dropdown-item">Your order has been shipped ✔</a></li>
+                                    <li><a class="dropdown-item">New message received 💬</a></li>
+                                    <li><a class="dropdown-item">Price dropped for item you liked 🔽</a></li>
+                                </ul>
+                            </li>
+
+                            <!-- Wishlist -->
+                            <li class="nav-item me-3">
+                                <a class="nav-link @(currentController == "Wishlist" ? "active fw-bold" : "")"
+                                   asp-controller="Wishlist" asp-action="Index">❤️ Wishlist</a>
+                            </li>
+
+                            <!-- Orders -->
+                            <li class="nav-item me-3">
+                                <a class="nav-link @(currentController == "Order" ? "active fw-bold" : "")"
+                                   asp-controller="Order" asp-action="MyOrders">📦 Orders</a>
+                            </li>
+
+                            <!-- Cart -->
+                            <li class="nav-item me-3">
+                                <a class="nav-link @(currentController == "ShoppingCart" ? "active fw-bold" : "")"
+                                   asp-controller="ShoppingCart" asp-action="Index">
+                                    🛒 Cart
+                                </a>
+                            </li>
+
+                            <!-- Messages -->
+                            <li class="nav-item me-3">
+                                <a class="nav-link @(currentController == "Chat" ? "active fw-bold" : "")"
+                                   asp-controller="Chat" asp-action="MyConversations">
+                                    💬 Messages
+                                </a>
+                            </li>
+
+                            <!-- Admin Panel -->
+                            @if (isAdmin)
+                            {
+                                <li class="nav-item dropdown me-3">
+                                    <a class="nav-link dropdown-toggle text-danger fw-bold" data-bs-toggle="dropdown">
+                                        Admin Panel
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Product" asp-action="AdminList">Manage Products</a></li>
+                                        <li><a class="dropdown-item" asp-controller="User" asp-action="Index">Manage Users</a></li>
+                                    </ul>
+                                </li>
+                            }
+
+                            <!-- Profile -->
+                            <li class="nav-item dropdown me-3">
+                                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                                    👤 @displayName
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile">My Profile</a></li>
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Settings">Settings</a></li>
+                                </ul>
+                            </li>
+
+                            <!-- Logout -->
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger">Logout</button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <!-- Guest -->
+                            <li class="nav-item me-2">
+                                <a class="btn btn-outline-primary" asp-controller="Account" asp-action="Login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-primary" asp-controller="Account" asp-action="Register">Register</a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+ @*    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+
+                <!-- لوجو / اسم الموقع يودّي على صفحة المنتجات -->
+                <a class="navbar-brand fw-bold" asp-area="" asp-controller="Product" asp-action="Index">
+                    StudentBazaar
+                </a>
+
+                <button class="navbar-toggler" type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent"
+                        aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+
+                    <!-- LEFT LINKS -->
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark @(currentController == "Product" ? "active fw-semibold" : "")"
+                               asp-controller="Product" asp-action="Index">
+                                Shop
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark @(currentController == "Home" && currentAction == "Index" ? "active fw-semibold" : "")"
+                               asp-controller="Home" asp-action="Index">
+                                Home
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- RIGHT SIDE -->
+                    <ul class="navbar-nav align-items-center">
+
+                        @if (isAuthenticated)
+                        {
+                            <!-- اسم اليوزر أو اسم اللي بكلمه في الشات -->
+                            <li class="nav-item me-3">
+                                <span class="navbar-text">
+                                    Hello, @displayName
+                                    @if (isAdmin)
+                                    {
+                                        <span class="badge bg-danger ms-1">Admin</span>
+                                    }
+                                </span>
+                            </li>
+
+                            <!-- Cart -->
+                            <li class="nav-item me-3">
+                                <a class="nav-link position-relative @(currentController == "ShoppingCart" ? "active" : "")"
+                                   asp-controller="ShoppingCart" asp-action="Index">
+                                    🛒 Cart
+                                </a>
+                            </li>
+
+                            <!-- Messages -->
+                            <li class="nav-item me-3">
+                                <a class="nav-link @(currentController == "Chat" ? "active fw-semibold" : "")"
+                                   asp-controller="Chat" asp-action="MyConversations">
+                                    Messages
+                                </a>
+                            </li>
+
+                            <!-- Logout -->
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger">
+                                        Logout
+                                    </button>
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            <!-- Login / Register -->
+                            <li class="nav-item me-2">
+                                <a class="btn btn-outline-primary"
+                                   asp-controller="Account"
+                                   asp-action="Login">
+                                    Login
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="btn btn-primary"
+                                   asp-controller="Account"
+                                   asp-action="Register">
+                                    Register
+                                </a>
+                            </li>
+                        }
+
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+    </header> *@
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - StudentBazaar -
+            <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

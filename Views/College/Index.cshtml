@@ -1,0 +1,30 @@
+﻿@model IEnumerable<StudentBazaar.Web.Models.College>
+
+<h2>Colleges</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Create New College</a>
+</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>College Name</th>
+            <th>University</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var college in Model)
+        {
+            <tr>
+                <td>@college.CollegeName</td>
+                <td>@college.University.UniversityName</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@college.Id" class="btn btn-sm btn-warning">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@college.Id" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
