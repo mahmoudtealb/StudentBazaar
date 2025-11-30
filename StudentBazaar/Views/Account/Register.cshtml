@@ -1,0 +1,110 @@
+﻿@using StudentBazaar.Web.Models
+@model RegisterViewModel
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="col-md-6">
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <h3 class="text-center mb-4">Register</h3>
+
+                <form asp-action="Register" asp-controller="Account" method="post">
+
+                    <div asp-validation-summary="All" class="text-danger mb-2"></div>
+
+                    <input type="hidden" asp-for="Role" value="Student" />
+
+                    <!-- Full Name -->
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label"></label>
+                        <input asp-for="FullName" class="form-control" placeholder="Full Name" />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label"></label>
+                        <input asp-for="Email" class="form-control" placeholder="Email" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label"></label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Password" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label"></label>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm Password" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <!-- University -->
+                    <div class="mb-3">
+                        <label asp-for="UniversityId" class="form-label"></label>
+                        <select asp-for="UniversityId" asp-items="Model.Universities" class="form-select" id="UniversitySelect">
+                            <option value="">-- Select University --</option>
+                        </select>
+                        <span asp-validation-for="UniversityId" class="text-danger"></span>
+                    </div>
+
+                    <!-- College -->
+                    <div class="mb-3">
+                        <label asp-for="CollegeId" class="form-label"></label>
+                        <select asp-for="CollegeId" asp-items="Model.Colleges" class="form-select" id="CollegeSelect">
+                            <option value="">-- Select College --</option>
+                        </select>
+                        <span asp-validation-for="CollegeId" class="text-danger"></span>
+                    </div>
+
+                    <!-- Address -->
+                    <div class="mb-3">
+                        <label asp-for="Address" class="form-label"></label>
+                        <input asp-for="Address" class="form-control" placeholder="Address" />
+                        <span asp-validation-for="Address" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">Register</button>
+
+                    <div class="text-center mt-3">
+                        <a asp-action="Login" asp-controller="Account" class="text-decoration-none">
+                            Already have an account? Login
+                        </a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            $('#UniversitySelect').change(function () {
+                var universityId = $(this).val();
+                $('#CollegeSelect').html('<option>Loading...</option>');
+
+                if (universityId) {
+                    $.getJSON('@Url.Action("GetColleges", "Account")?universityId=' + universityId, function (data) {
+                        var items = '<option value="">-- Select College --</option>';
+                        $.each(data, function (i, college) {
+                            items += '<option value="' + college.id + '">' + college.collegeName + '</option>';
+                        });
+                        $('#CollegeSelect').html(items);
+                    });
+                } else {
+                    $('#CollegeSelect').html('<option value="">-- Select College --</option>');
+                }
+            });
+        });
+    </script>
+}

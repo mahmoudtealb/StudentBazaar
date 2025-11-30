@@ -7,7 +7,11 @@
             "type": "process",
             "args": [
                 "build",
+<<<<<<< HEAD
                 "${workspaceFolder}/StudentBazaar/StudentBazaar/StudentBazaar.Web.csproj",
+=======
+                "${workspaceFolder}/StudentBazaar/StudentBazaar.Web.csproj",
+>>>>>>> 42941222ed52abfe6b8dc9bc6de2146c6e260303
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -19,7 +23,11 @@
             "type": "process",
             "args": [
                 "publish",
+<<<<<<< HEAD
                 "${workspaceFolder}/StudentBazaar/StudentBazaar/StudentBazaar.Web.csproj",
+=======
+                "${workspaceFolder}/StudentBazaar/StudentBazaar.Web.csproj",
+>>>>>>> 42941222ed52abfe6b8dc9bc6de2146c6e260303
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary;ForceNoAlign"
             ],
@@ -33,7 +41,11 @@
                 "watch",
                 "run",
                 "--project",
+<<<<<<< HEAD
                 "${workspaceFolder}/StudentBazaar/StudentBazaar/StudentBazaar.Web.csproj"
+=======
+                "${workspaceFolder}/StudentBazaar/StudentBazaar.Web.csproj"
+>>>>>>> 42941222ed52abfe6b8dc9bc6de2146c6e260303
             ],
             "problemMatcher": "$msCompile"
         }

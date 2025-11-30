@@ -1,0 +1,41 @@
+﻿@model IEnumerable<StudentBazaar.Web.Models.Listing>
+
+@{
+    ViewData["Title"] = "Listings";
+}
+
+<h2 class="mt-3">Listings</h2>
+
+<a asp-action="Create" class="btn btn-primary mb-3">Create New Listing</a>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Product</th>
+            <th>Seller</th>
+            <th>Price</th>
+            <th>Condition</th>
+            <th>Status</th>
+            <th>Posting Date</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var listing in Model)
+        {
+            <tr>
+                <td>@listing.Product?.Name</td>
+                <td>@listing.Seller?.FullName</td>
+                <td>@listing.Price.ToString("F2")</td>
+                <td>@listing.Condition</td>
+                <td>@listing.Status</td>
+                <td>@listing.PostingDate.ToShortDateString()</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@listing.Id" class="btn btn-info btn-sm">Details</a>
+                    <a asp-action="Edit" asp-route-id="@listing.Id" class="btn btn-warning btn-sm">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@listing.Id" class="btn btn-danger btn-sm">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

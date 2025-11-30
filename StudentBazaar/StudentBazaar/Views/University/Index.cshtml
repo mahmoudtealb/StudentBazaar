@@ -1,0 +1,46 @@
+﻿@model IEnumerable<StudentBazaar.Web.Models.University>
+
+@{
+    ViewData["Title"] = "Universities";
+}
+
+<h2>Universities</h2>
+
+<p>
+    <a class="btn btn-primary" href="/University/Create">Create New</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Colleges</th>
+            <th>Users</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.UniversityName</td>
+                <td>@item.Location</td>
+                <td>@item.Colleges?.Count()</td>
+                <td>@item.Users?.Count()</td>
+                <td>
+                    <a class="btn btn-warning btn-sm" href="/University/Edit/@item.Id">Edit</a>
+
+                    <form asp-action="DeleteConfirmed" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Are you sure you want to delete this University?');">
+                            Delete
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -10,9 +10,15 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
+<<<<<<< HEAD
             "program": "${workspaceFolder}/StudentBazaar/StudentBazaar/bin/Debug/net9.0/StudentBazaar.Web.dll",
             "args": [],
             "cwd": "${workspaceFolder}/StudentBazaar/StudentBazaar",
+=======
+            "program": "${workspaceFolder}/StudentBazaar/bin/Debug/net9.0/StudentBazaar.Web.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/StudentBazaar",
+>>>>>>> 42941222ed52abfe6b8dc9bc6de2146c6e260303
             "stopAtEntry": false,
             // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
             "serverReadyAction": {

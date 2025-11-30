@@ -1,0 +1,100 @@
+@{
+    ViewData["Title"] = "PayPal Payment";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+
+<style>
+    .paypal-container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        color: white;
+    }
+    .paypal-logo {
+        width: 120px;
+        margin-bottom: 30px;
+    }
+    .payment-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        color: #333;
+        margin-top: 20px;
+    }
+    .btn-paypal {
+        background: #0070ba;
+        color: white;
+        padding: 15px 40px;
+        border-radius: 30px;
+        border: none;
+        font-size: 18px;
+        font-weight: bold;
+        transition: all 0.3s;
+        width: 100%;
+    }
+    .btn-paypal:hover {
+        background: #005ea6;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+</style>
+
+<div class="container">
+    <div class="paypal-container text-center">
+        <svg class="paypal-logo" viewBox="0 0 283 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M283 32.5C283 50.45 268.45 64 250.5 64H60.95C54.95 64 50 59.05 50 53.05V10.95C50 4.95 54.95 0 60.95 0H236.85C254.8 0 269.35 14.55 269.35 32.5H283Z" fill="white"/>
+        </svg>
+        
+        <h2 class="mb-4">Complete Your Payment</h2>
+        
+        <div class="payment-card">
+            <h4 class="mb-3">Payment Details</h4>
+            <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                <span class="text-muted">Amount to Pay:</span>
+                <strong class="fs-4">$@ViewBag.Amount</strong>
+            </div>
+            
+            <p class="text-muted small mb-4">
+                You will be redirected to PayPal to securely complete your payment.
+            </p>
+            
+            <form method="post" action="https://www.sandbox.paypal.com/cgi-bin/webscr" id="paypalForm">
+                <input type="hidden" name="cmd" value="_xclick">
+                <input type="hidden" name="business" value="@ViewBag.BusinessEmail">
+                <input type="hidden" name="item_name" value="Order Payment">
+                <input type="hidden" name="amount" value="@ViewBag.Amount">
+                <input type="hidden" name="currency_code" value="USD">
+                <input type="hidden" name="return" value="@ViewBag.ReturnUrl">
+                <input type="hidden" name="cancel_return" value="@ViewBag.CancelUrl">
+                <input type="hidden" name="notify_url" value="@ViewBag.ReturnUrl">
+                
+                <button type="submit" class="btn btn-paypal">
+                    <i class="bi bi-paypal me-2"></i>Pay with PayPal
+                </button>
+            </form>
+            
+            <a href="@ViewBag.CancelUrl" class="btn btn-link text-muted mt-3">
+                <i class="bi bi-x-circle me-1"></i>Cancel Payment
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Optional: Auto-submit form after 2 seconds
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     setTimeout(function() {
+    //         var form = document.getElementById('paypalForm');
+    //         if (form) {
+    //             form.submit();
+    //         }
+    //     }, 2000);
+    // });
+</script>
+
